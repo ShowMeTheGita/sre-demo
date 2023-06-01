@@ -1,0 +1,10 @@
+[monitoring_servers]
+grafana ansible_host=grafana
+prometheus
+
+[all_servers:children]
+monitoring_servers
+
+[grafana]
+grafana ansible_host=grafana
+grafana
