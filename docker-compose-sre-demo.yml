@@ -1,0 +1,23 @@
+version: '3'
+services:
+  prometheus:
+    image: prom/prometheus:v2.44.0
+    ports:
+      - 9090:9090
+    depends_on:
+      - ansible
+
+  grafana:
+    image: grafana/grafana:9.5.2
+    ports:
+      - 3000:3000
+    depends_on:
+      - prometheus
+      - ansible
+
+  ansible:
+    build:
+      context: ./dockerfiles
+      dockerfile: Dockerfile
+    volumes:
+      - ./ansible:/ansible
