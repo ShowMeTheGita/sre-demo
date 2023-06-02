@@ -1,10 +1,6 @@
 [monitoring_servers]
 grafana ansible_host=grafana
-prometheus
+prometheus ansible_host=prometheus
 
 [all_servers:children]
 monitoring_servers
-
-[grafana]
-grafana ansible_host=grafana
-grafana

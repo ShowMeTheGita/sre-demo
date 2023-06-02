@@ -1,7 +1,11 @@
 version: '3'
 services:
   prometheus:
-    image: prom/prometheus:v2.44.0
+    container_name: prometheus
+    build:
+      context: ./dockerfiles
+      dockerfile: prometheus-custom.Dockerfile
+    image: prom-custom:demo
     ports:
       - 9090:9090
     depends_on:

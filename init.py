@@ -24,21 +24,22 @@ def run_docker_compose():
         print_exception_and_stop_execution(e)
 
 
-def start_sshd_service(container_name):
+def start_sshd_service(containers):
 
-    print("Starting sshd services...")
+    print("Starting sshd services inside containers...")
     
     try:
-        docker_exec = subprocess.run(["docker", "exec", "-u", "root", container_name, "/etc/init.d/sshd", "start"],
-                                        capture_output=True,
-                                        text=True)
+        for container in containers:
+            docker_exec = subprocess.run(["docker", "exec", "-u", "root", container, "/etc/init.d/sshd", "start"],
+                                            capture_output=True,
+                                            text=True)
 
-        if process_completed_sucessfully(docker_exec.returncode):
-            print_green(f"[OK] - Successfully started sshd service on {[container_name]}")
-        else:
-            print(docker_exec.stderr)
-            print_red(f"[Error] - Something went wrong while starting the sshd service on {[container_name]}")
-            sys.exit(1)
+            if process_completed_sucessfully(docker_exec.returncode):
+                print_green(f"[OK] - Successfully started sshd service on {[container]}")
+            else:
+                print(docker_exec.stderr)
+                print_red(f"[Error] - Something went wrong while starting the sshd service on {[container]}")
+                sys.exit(1)
 
     except Exception as e:
         print_exception_and_stop_execution(e)
@@ -50,7 +51,8 @@ def generate_ansible_ssh_key_pair():
 
     try:
         docker_exec = subprocess.run(["docker", "exec", "-u", "ansible", "ansible", 
-                        "ssh-keygen", "-t", "rsa" ,"-b", "2048", "-f", "/home/ansible/.ssh/id_rsa", "-N" "\"\"\"\""],
+                        "ssh-keygen", "-t", "rsa" ,"-b", "2048", "-f", "/home/ansible/.ssh/id_rsa", "-N", ""],
+                        input="\n\n",
                         capture_output=True,
                         text=True)
         
@@ -71,13 +73,14 @@ def copy_ssh_pub_key_to_host():
 
     try:
         docker_exec = subprocess.run(["docker", "exec", "-u", "ansible", "ansible", 
-                        "cp", 
+                        "cp",
+                        "-f", 
                         "/home/ansible/.ssh/id_rsa.pub", 
                         "/ansible/config/id_rsa.pub"],
                         capture_output=True, 
                         text=True)
-        
-        if process_completed_sucessfully(docker_exec):
+    
+        if process_completed_sucessfully(docker_exec.returncode):
             print_green("[OK] - Successfully copied ssh public key to ansible container shared folder")
         else:
             print(docker_exec.stderr)
@@ -97,16 +100,17 @@ def copy_ssh_pub_key_to_container(containers):
                                        capture_output=True, 
                                        text=True)
             
-            docker_exec = subprocess.run(["docker", "exec", "-u", "root", container, 
-                            "chown", "ansible:ansible", "/home/ansible/.ssh/authorized_keys"],
-                            capture_output=True,
-                            text=True)
+            docker_exec_chown = subprocess.run(["docker", "exec", "-u", "root", container, 
+                                                "chown", "ansible:ansible", "/home/ansible/.ssh/authorized_keys"],
+                                                capture_output=True,
+                                                text=True)
             
-            if process_completed_sucessfully(docker_cp.returncode) and process_completed_sucessfully(docker_exec.returncode):
+            
+            if process_completed_sucessfully(docker_cp.returncode) and process_completed_sucessfully(docker_exec_chown.returncode):
                 print_green(f"[OK] - Succesfully copied ssh public key to [{container}]")
             else:
                 print(docker_cp.stderr)
-                print(docker_exec.stderr)
+                print(docker_exec_chown.stderr)
                 print_red(f"[Error] - Failed to copy script or change permissions from host to [{container}]")
                 sys.exit(1)
             
@@ -145,15 +149,12 @@ def process_completed_sucessfully(return_code):
 
 if __name__ == "__main__":
 
-    containers = ["grafana"]
-
-    
+    containers = ["grafana", "prometheus"]
+        
     assert_script_execution_location()
     run_docker_compose()
     generate_ansible_ssh_key_pair()
-
-    for container in containers:
-        start_sshd_service(container)
-
+    copy_ssh_pub_key_to_host()
     copy_ssh_pub_key_to_container(containers)
+    start_sshd_service(containers)
 

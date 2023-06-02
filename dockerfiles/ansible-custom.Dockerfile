@@ -1,7 +1,6 @@
 FROM python:latest
 
 # Create an "ansible" user
-#RUN useradd -ms /bin/bash ansible && touch /home/ansible/.bash_profile && chown ansible:ansible /home/ansible/.bash_profile
 RUN useradd -ms /bin/bash ansible
 
 # Update packages & install helpful command-line  tools
@@ -15,7 +14,9 @@ RUN mkdir /ansible \
 USER ansible
 
 # Add the user's local bin directory to the PATH (necessary in order to run ansible-related commands)
+# Set the ANSIBLE_INVENTORY for ansible to recognize the other containers
 ENV PATH="/home/ansible/.local/bin:${PATH}"
+ENV ANSIBLE_INVENTORY="/ansible/config/hosts"
 
 # Install/Upgrade ansible
 RUN python3 -m pip install --user ansible \

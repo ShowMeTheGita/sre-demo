@@ -1,6 +1,6 @@
 ---
 - name: Display IP addresses
-  hosts: grafana
+  hosts: monitoring_servers
   gather_facts: False
   
   tasks:
