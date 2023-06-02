@@ -6,7 +6,7 @@ USER root
 # Update, upgrade, and install necessary packages
 RUN apk update \
     && apk upgrade \
-    && apk add openrc sudo openssh
+    && apk add openrc sudo openssh python3
 
 # Create a user for ansible to ssh with. Allow it to use passwordless privilege escalation
 RUN adduser -D -h /home/ansible -s /bin/bash ansible \

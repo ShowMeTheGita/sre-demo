@@ -11,7 +11,7 @@ WORKDIR /prometheus
 
 # Install necessary packages
 RUN apk update && \
-    apk add --no-cache wget tar openrc sudo openssh
+    apk add --no-cache wget tar openrc sudo openssh python3
 
 ## Begin setting up ssh
 # Generate the server host keys
