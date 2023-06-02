@@ -6,6 +6,7 @@ services:
       context: ./dockerfiles
       dockerfile: prometheus-custom.Dockerfile
     image: prom-custom:demo
+    hostname: prom
     ports:
       - 9090:9090
     depends_on:
@@ -17,6 +18,7 @@ services:
       context: ./dockerfiles
       dockerfile: grafana-custom.Dockerfile
     image: grafana-custom:demo
+    hostname: graf
     ports:
       - 3000:3000
     depends_on:
@@ -29,5 +31,6 @@ services:
       context: ./dockerfiles
       dockerfile: ansible-custom.Dockerfile
     image: ansible-custom:demo
+    hostname: ans
     volumes:
       - ./ansible:/ansible
