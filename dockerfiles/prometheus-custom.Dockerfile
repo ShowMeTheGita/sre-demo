@@ -48,7 +48,7 @@ COPY prometheus.yml /etc/prometheus/prometheus.yml
 # Expose Prometheus port
 EXPOSE 9090
 
-# Change all prometheus-related directory permissions to user prometheus and change to prometheus user
+# Change all prometheus-related directory permissions to user prometheus
 RUN chown -R prometheus:prometheus /prometheus && \
     chown -R prometheus:prometheus /etc/prometheus
 

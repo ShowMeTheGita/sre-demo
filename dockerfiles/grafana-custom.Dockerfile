@@ -14,25 +14,19 @@ RUN adduser -D -h /home/ansible -s /bin/bash ansible && \
     echo "ansible ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/ansible && \
     chmod 0440 /etc/sudoers.d/ansible
 
-## Begin setting up ssh
-
-# Generate the server host keys
-RUN ssh-keygen -A
-
-# Create the necessary folders & files
-RUN mkdir -p /home/ansible/.ssh \
-    && chmod 700 /home/ansible/.ssh \
-    && touch /home/ansible/.ssh/authorized_keys \
-    && chmod 600 /home/ansible/.ssh/authorized_keys \
-    && chown -R ansible:ansible /home/ansible \
-    && passwd -u ansible
-
-# Change configurations to allow ssh to run on Alpine Linux 
-RUN echo "PasswordAuthentication no" >> /etc/ssh/sshd_config \
-    && echo "PubkeyAuthentication yes" >> /etc/ssh/sshd_config \
-    && rc-status \
-    && touch /run/openrc/softlevel \
-    && rc-update add sshd
+# https://dev.to/yakovlev_alexey/running-ssh-in-an-alpine-docker-container-3lop
+# Configure ssh for Alpine Linux and set it up for ansible user
+RUN ssh-keygen -A && \
+    echo "PasswordAuthentication no" >> /etc/ssh/sshd_config && \
+    echo "PubkeyAuthentication yes" >> /etc/ssh/sshd_config && \
+    rc-status && \
+    touch /run/openrc/softlevel && \
+    mkdir -p /home/ansible/.ssh && \
+    chmod 700 /home/ansible/.ssh && \
+    touch /home/ansible/.ssh/authorized_keys && \
+    chmod 600 /home/ansible/.ssh/authorized_keys && \
+    chown -R ansible:ansible /home/ansible && \
+    passwd -u ansible
 
 # Add exception for grafana user to be able to start sshd service 
 RUN echo "grafana  ALL=(ALL) NOPASSWD: /sbin/rc-service sshd restart" >> /etc/sudoers
