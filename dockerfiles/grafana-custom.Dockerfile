@@ -1,16 +1,18 @@
 FROM grafana/grafana:9.5.2
 
-# Change to root user to perform the necessary changes
+# Excplicitly change to root user for running pre-requisites
 USER root
 
 # Update, upgrade, and install necessary packages
-RUN apk update \
-    && apk upgrade \
-    && apk add openrc sudo openssh python3
+RUN apk update && \
+    apk upgrade && \
+    apk add --no-cache openrc sudo openssh python3
 
-# Create a user for ansible to ssh with. Allow it to use passwordless privilege escalation
-RUN adduser -D -h /home/ansible -s /bin/bash ansible \
-    && echo -e "ansible ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/ansible && chmod 0440 /etc/sudoers.d/ansible
+# Create user for ansible
+# Allow passwordless elevation
+RUN adduser -D -h /home/ansible -s /bin/bash ansible && \
+    echo -e "ansible ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/ansible && \
+    chmod 0440 /etc/sudoers.d/ansible
 
 ## Begin setting up ssh
 
@@ -29,10 +31,21 @@ RUN mkdir -p /home/ansible/.ssh \
 RUN echo -e "PasswordAuthentication no" >> /etc/ssh/sshd_config \
     && echo -e "PubkeyAuthentication yes" >> /etc/ssh/sshd_config \
     && rc-status \
-    && touch /run/openrc/softlevel
+    && touch /run/openrc/softlevel \
+    && rc-update add sshd
 
+# Add exception for grafana user to be able to start sshd service 
+RUN echo -e 'grafana  ALL=(ALL) NOPASSWD: /sbin/rc-service sshd restart' >> /etc/sudoers
 
+# Copy entrypoint script to image and change permissions
+COPY grafana-entrypoint.sh /grafana-entrypoint.sh
+RUN chown grafana:root /grafana-entrypoint.sh && \
+    chmod 700 /grafana-entrypoint.sh
+
+# Switch to grafana user before startup
 USER grafana
 
+# Set entrypoint for custom script
+ENTRYPOINT [ "/bin/bash", "/grafana-entrypoint.sh" ]
 
 

@@ -1,10 +1,14 @@
 # The Prometheus docker image doesn't come with package managers by default
-# Since we need to enable ssh for Ansible and install some packages on the container, we'll customize an alpine image instead
+# Since we need to enable the sshd service for Ansible and install some packages on the container, we'll customize an alpine image instead
 FROM alpine:latest
 
-# Create the prometheus and the ansible user
+
+# Create prometheus and ansible user
+# Allow ansible to do passwordless elevation
 RUN adduser -D -s /bin/sh prometheus && \
-    adduser -D -h /home/ansible -s /bin/sh ansible
+    adduser -D -h /home/ansible -s /bin/sh ansible && \
+    echo -e "ansible ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/ansible && \
+    chmod 0440 /etc/sudoers.d/ansible
 
 # Set the working directory
 WORKDIR /prometheus
@@ -13,23 +17,20 @@ WORKDIR /prometheus
 RUN apk update && \
     apk add --no-cache wget tar openrc sudo openssh python3
 
-## Begin setting up ssh
-# Generate the server host keys
-RUN ssh-keygen -A
+# https://dev.to/yakovlev_alexey/running-ssh-in-an-alpine-docker-container-3lop
+# Configure ssh for Alpine Linux and set it up for ansible user
+RUN ssh-keygen -A && \
+    echo -e "PasswordAuthentication no" >> /etc/ssh/sshd_config && \
+    echo -e "PubkeyAuthentication yes" >> /etc/ssh/sshd_config && \
+    rc-status && \
+    touch /run/openrc/softlevel && \
+    mkdir -p /home/ansible/.ssh && \
+    chmod 700 /home/ansible/.ssh && \
+    touch /home/ansible/.ssh/authorized_keys && \
+    chmod 600 /home/ansible/.ssh/authorized_keys && \
+    chown -R ansible:ansible /home/ansible && \
+    passwd -u ansible
 
-# Create the necessary folders & files
-RUN mkdir -p /home/ansible/.ssh \
-    && chmod 700 /home/ansible/.ssh \
-    && touch /home/ansible/.ssh/authorized_keys \
-    && chmod 600 /home/ansible/.ssh/authorized_keys \
-    && chown -R ansible:ansible /home/ansible \
-    && passwd -u ansible
-
-# Change configurations to allow ssh to run on Alpine Linux 
-RUN echo -e "PasswordAuthentication no" >> /etc/ssh/sshd_config \
-    && echo -e "PubkeyAuthentication yes" >> /etc/ssh/sshd_config \
-    && rc-status \
-    && touch /run/openrc/softlevel
 
 ## Begin setting up Prometheus
 # Download and extract Prometheus
@@ -38,8 +39,8 @@ RUN wget https://github.com/prometheus/prometheus/releases/download/v2.44.0/prom
     rm prometheus-2.44.0.linux-amd64.tar.gz
 
 # Move Prometheus binaries to /usr/local/bin
-RUN mv prometheus-2.44.0.linux-amd64/* /usr/local/bin/ \
-    && rm -r prometheus-2.44.0.linux-amd64
+RUN mv prometheus-2.44.0.linux-amd64/* /usr/local/bin/ && \
+    rm -r prometheus-2.44.0.linux-amd64
 
 # Create the Prometheus directory and copy the prometheus.yml to the image
 RUN mkdir /etc/prometheus
@@ -49,16 +50,19 @@ COPY prometheus.yml /etc/prometheus/prometheus.yml
 EXPOSE 9090
 
 # Change all prometheus-related directory permissions to user prometheus and change to prometheus user
-RUN chown -R prometheus:prometheus /prometheus \
-    && chown -R prometheus:prometheus /etc/prometheus
+RUN chown -R prometheus:prometheus /prometheus && \
+    chown -R prometheus:prometheus /etc/prometheus
 
-# Change to user prometheus
+# Add exception for prometheus user to be able to start sshd service
+RUN echo -e 'prometheus  ALL=(ALL) NOPASSWD: /sbin/rc-service sshd restart' >> /etc/sudoers
+
+# Copy entrypoint script to image and change permissions
+COPY prometheus-entrypoint.sh /prometheus-entrypoint.sh
+RUN chown prometheus:prometheus /prometheus-entrypoint.sh && \
+    chmod 700 /prometheus-entrypoint.sh
+    
+# Switch to prometheus before startup
 USER prometheus
 
-# Set the entrypoint to start Prometheus
-ENTRYPOINT [ "prometheus" ]
-CMD [ "--config.file=/etc/prometheus/prometheus.yml", \
-"--storage.tsdb.path=/prometheus", \
-"--web.console.libraries=/usr/local/share/prometheus/console_libraries", \
-"--web.console.templates=/usr/local/share/prometheus/consoles" ]
-
+# Set entrypoint to custom script
+ENTRYPOINT [ "/bin/sh", "/prometheus-entrypoint.sh" ]
