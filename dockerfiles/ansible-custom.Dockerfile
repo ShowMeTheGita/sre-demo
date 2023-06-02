@@ -21,9 +21,10 @@ ENV PATH="/home/ansible/.local/bin:${PATH}"
 ENV ANSIBLE_INVENTORY="/ansible/config/hosts"
 
 # Create and configure ansible user-specific ssh config file to avoid HostKeyChecking prompt when sshing
-RUN touch /home/ansible/.ssh/config && \
-    echo -e 'Host *' >> /home/ansible/.ssh/config && \
-    echo -e 'StrictHostKeyChecking no' >> /home/ansible/.ssh/config
+RUN mkdir /home/ansible/.ssh/ && \
+    touch /home/ansible/.ssh/config && \
+    echo "Host *" >> /home/ansible/.ssh/config && \
+    echo "StrictHostKeyChecking no" >> /home/ansible/.ssh/config
 
 # Install/Upgrade ansible
 RUN python3 -m pip install --user ansible && \

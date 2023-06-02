@@ -11,7 +11,7 @@ RUN apk update && \
 # Create user for ansible
 # Allow passwordless elevation
 RUN adduser -D -h /home/ansible -s /bin/bash ansible && \
-    echo -e "ansible ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/ansible && \
+    echo "ansible ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/ansible && \
     chmod 0440 /etc/sudoers.d/ansible
 
 ## Begin setting up ssh
@@ -28,14 +28,14 @@ RUN mkdir -p /home/ansible/.ssh \
     && passwd -u ansible
 
 # Change configurations to allow ssh to run on Alpine Linux 
-RUN echo -e "PasswordAuthentication no" >> /etc/ssh/sshd_config \
-    && echo -e "PubkeyAuthentication yes" >> /etc/ssh/sshd_config \
+RUN echo "PasswordAuthentication no" >> /etc/ssh/sshd_config \
+    && echo "PubkeyAuthentication yes" >> /etc/ssh/sshd_config \
     && rc-status \
     && touch /run/openrc/softlevel \
     && rc-update add sshd
 
 # Add exception for grafana user to be able to start sshd service 
-RUN echo -e 'grafana  ALL=(ALL) NOPASSWD: /sbin/rc-service sshd restart' >> /etc/sudoers
+RUN echo "grafana  ALL=(ALL) NOPASSWD: /sbin/rc-service sshd restart" >> /etc/sudoers
 
 # Copy entrypoint script to image and change permissions
 COPY grafana-entrypoint.sh /grafana-entrypoint.sh

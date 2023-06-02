@@ -24,27 +24,6 @@ def run_docker_compose():
         print_exception_and_stop_execution(e)
 
 
-def start_sshd_service(containers):
-
-    print("Starting sshd services inside containers...")
-    
-    try:
-        for container in containers:
-            docker_exec = subprocess.run(["docker", "exec", "-u", "root", container, "/etc/init.d/sshd", "start"],
-                                            capture_output=True,
-                                            text=True)
-
-            if process_completed_sucessfully(docker_exec.returncode):
-                print_green(f"[OK] - Successfully started sshd service on {[container]}")
-            else:
-                print(docker_exec.stderr)
-                print_red(f"[Error] - Something went wrong while starting the sshd service on {[container]}")
-                sys.exit(1)
-
-    except Exception as e:
-        print_exception_and_stop_execution(e)
-
-
 def generate_ansible_ssh_key_pair():
 
     print("Generating ansible ssh key pair...")
@@ -156,5 +135,4 @@ if __name__ == "__main__":
     generate_ansible_ssh_key_pair()
     copy_ssh_pub_key_to_host()
     copy_ssh_pub_key_to_container(containers)
-    start_sshd_service(containers)
 

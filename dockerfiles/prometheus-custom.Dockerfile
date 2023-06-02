@@ -2,14 +2,6 @@
 # Since we need to enable the sshd service for Ansible and install some packages on the container, we'll customize an alpine image instead
 FROM alpine:latest
 
-
-# Create prometheus and ansible user
-# Allow ansible to do passwordless elevation
-RUN adduser -D -s /bin/sh prometheus && \
-    adduser -D -h /home/ansible -s /bin/sh ansible && \
-    echo -e "ansible ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/ansible && \
-    chmod 0440 /etc/sudoers.d/ansible
-
 # Set the working directory
 WORKDIR /prometheus
 
@@ -17,11 +9,18 @@ WORKDIR /prometheus
 RUN apk update && \
     apk add --no-cache wget tar openrc sudo openssh python3
 
+# Create prometheus and ansible user
+# Allow ansible to do passwordless elevation
+RUN adduser -D -s /bin/sh prometheus && \
+    adduser -D -h /home/ansible -s /bin/sh ansible && \
+    echo "ansible ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/ansible && \
+    chmod 0440 /etc/sudoers.d/ansible
+
 # https://dev.to/yakovlev_alexey/running-ssh-in-an-alpine-docker-container-3lop
 # Configure ssh for Alpine Linux and set it up for ansible user
 RUN ssh-keygen -A && \
-    echo -e "PasswordAuthentication no" >> /etc/ssh/sshd_config && \
-    echo -e "PubkeyAuthentication yes" >> /etc/ssh/sshd_config && \
+    echo "PasswordAuthentication no" >> /etc/ssh/sshd_config && \
+    echo "PubkeyAuthentication yes" >> /etc/ssh/sshd_config && \
     rc-status && \
     touch /run/openrc/softlevel && \
     mkdir -p /home/ansible/.ssh && \
@@ -54,7 +53,7 @@ RUN chown -R prometheus:prometheus /prometheus && \
     chown -R prometheus:prometheus /etc/prometheus
 
 # Add exception for prometheus user to be able to start sshd service
-RUN echo -e 'prometheus  ALL=(ALL) NOPASSWD: /sbin/rc-service sshd restart' >> /etc/sudoers
+RUN echo "prometheus  ALL=(ALL) NOPASSWD: /sbin/rc-service sshd restart" >> /etc/sudoers
 
 # Copy entrypoint script to image and change permissions
 COPY prometheus-entrypoint.sh /prometheus-entrypoint.sh
