@@ -1,14 +1,24 @@
 version: '3'
 services:
   prometheus:
-    image: prom/prometheus:v2.44.0
+    container_name: prometheus
+    build:
+      context: ./dockerfiles
+      dockerfile: prometheus-custom.Dockerfile
+    image: prom-custom:demo
+    hostname: prom
     ports:
       - 9090:9090
     depends_on:
       - ansible
 
   grafana:
-    image: grafana/grafana:9.5.2
+    container_name: grafana
+    build:
+      context: ./dockerfiles
+      dockerfile: grafana-custom.Dockerfile
+    image: grafana-custom:demo
+    hostname: graf
     ports:
       - 3000:3000
     depends_on:
@@ -16,8 +26,11 @@ services:
       - ansible
 
   ansible:
+    container_name: ansible
     build:
       context: ./dockerfiles
-      dockerfile: Dockerfile
+      dockerfile: ansible-custom.Dockerfile
+    image: ansible-custom:demo
+    hostname: ans
     volumes:
       - ./ansible:/ansible

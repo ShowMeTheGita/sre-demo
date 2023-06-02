@@ -1,0 +1,27 @@
+---
+- name: Ping and retrieve host information
+  hosts: all_servers 
+  gather_facts: true
+  
+  tasks:
+    - name: Ping host
+      ping:
+      register: ping_result
+
+    - name: Get host IP
+      shell: "hostname -i"
+      register: ip_result
+
+    - name: Get host hostname
+      shell: "hostname -f"
+      register: hostname_result
+
+    - name: Output host info
+      debug:
+        msg: >
+          Host details:
+          [Hostname: {{ hostname_result.stdout }}]
+          [IP: {{ ip_result.stdout }}]
+          [Ping: {% if ping_result.failed == false %}Sucessfully pinged host{% else %}Failed to ping host{% endif %}]
+      failed_when: ping.result.failed is true
+    
