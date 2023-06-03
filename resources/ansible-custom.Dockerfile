@@ -9,8 +9,8 @@ RUN apt-get update && \
     apt-get install -y vim
 
 # Create shared directory for host/container & set permissions
-RUN mkdir /ansible && \
-    chown ansible:ansible /ansible
+RUN mkdir /resources && \
+    chown ansible:ansible /resources
 
 # Switch to ansible
 USER ansible

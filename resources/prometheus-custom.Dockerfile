@@ -53,7 +53,7 @@ RUN chown -R prometheus:prometheus /prometheus && \
     chown -R prometheus:prometheus /etc/prometheus
 
 # Add exception for prometheus user to be able to start sshd service
-RUN echo "prometheus  ALL=(ALL) NOPASSWD: /sbin/rc-service sshd restart" >> /etc/sudoers
+RUN echo -e 'prometheus  ALL=(ALL) NOPASSWD: /sbin/rc-service sshd restart' >> /etc/sudoers
 
 # Copy entrypoint script to image and change permissions
 COPY prometheus-entrypoint.sh /prometheus-entrypoint.sh

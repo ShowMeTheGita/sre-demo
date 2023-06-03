@@ -55,7 +55,7 @@ def copy_ssh_pub_key_to_host():
                         "cp",
                         "-f", 
                         "/home/ansible/.ssh/id_rsa.pub", 
-                        "/ansible/config/id_rsa.pub"],
+                        "/resources/ansible/config/id_rsa.pub"],
                         capture_output=True, 
                         text=True)
     
@@ -75,7 +75,7 @@ def copy_ssh_pub_key_to_container(containers):
 
     for container in containers:
         try:
-            docker_cp = subprocess.run(["docker", "cp", "ansible\config\id_rsa.pub", f"{container}:/home/ansible/.ssh/authorized_keys"],
+            docker_cp = subprocess.run(["docker", "cp", "resources/ansible/config/id_rsa.pub", f"{container}:/home/ansible/.ssh/authorized_keys"],
                                        capture_output=True, 
                                        text=True)
             

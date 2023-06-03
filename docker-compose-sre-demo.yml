@@ -3,7 +3,7 @@ services:
   prometheus:
     container_name: prometheus
     build:
-      context: ./dockerfiles
+      context: ./resources
       dockerfile: prometheus-custom.Dockerfile
     image: prom-custom:demo
     hostname: prom
@@ -15,7 +15,7 @@ services:
   grafana:
     container_name: grafana
     build:
-      context: ./dockerfiles
+      context: ./resources
       dockerfile: grafana-custom.Dockerfile
     image: grafana-custom:demo
     hostname: graf
@@ -28,9 +28,9 @@ services:
   ansible:
     container_name: ansible
     build:
-      context: ./dockerfiles
+      context: ./resources
       dockerfile: ansible-custom.Dockerfile
     image: ansible-custom:demo
     hostname: ans
     volumes:
-      - ./ansible:/ansible
+      - ./resources:/resources
