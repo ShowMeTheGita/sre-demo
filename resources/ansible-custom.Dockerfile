@@ -18,7 +18,7 @@ USER ansible
 # Add the user's local bin directory to the PATH (necessary in order to run ansible-related commands)
 # Set the ANSIBLE_INVENTORY env var to point to the location of the hosts file
 ENV PATH="/home/ansible/.local/bin:${PATH}"
-ENV ANSIBLE_INVENTORY="/ansible/config/hosts"
+ENV ANSIBLE_INVENTORY="/resources/ansible/config/hosts"
 
 # Create and configure ansible user-specific ssh config file to avoid HostKeyChecking prompt when sshing
 RUN mkdir /home/ansible/.ssh/ && \

@@ -1,0 +1,10 @@
+---
+- name: Test
+  hosts: grafana
+
+  tasks:
+
+    - name: Copy
+      copy:
+        src: /tmp/node_exporter/node_exporter
+        dest: /tmp/node_exporter
