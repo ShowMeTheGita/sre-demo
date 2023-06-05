@@ -6,11 +6,12 @@ USER root
 # Update, upgrade, and install necessary packages
 RUN apk update && \
     apk upgrade && \
-    apk add --no-cache openrc sudo openssh python3
+    apk add --no-cache openrc sudo openssh python3 acl tar bash
 
-# Create user for ansible
+# Create orchastration user ansible
 # Allow passwordless elevation
-RUN adduser -D -h /home/ansible -s /bin/bash ansible && \
+RUN addgroup orcha && \
+    adduser -G orcha -D -h /home/ansible -s /bin/bash ansible && \
     echo "ansible ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/ansible && \
     chmod 0440 /etc/sudoers.d/ansible
 
@@ -25,19 +26,19 @@ RUN ssh-keygen -A && \
     chmod 700 /home/ansible/.ssh && \
     touch /home/ansible/.ssh/authorized_keys && \
     chmod 600 /home/ansible/.ssh/authorized_keys && \
-    chown -R ansible:ansible /home/ansible && \
+    chown -R ansible:orcha /home/ansible && \
     passwd -u ansible
 
-# Add exception for grafana user to be able to start sshd service 
-RUN echo "grafana  ALL=(ALL) NOPASSWD: /sbin/rc-service sshd restart" >> /etc/sudoers
+# Add exception for ansible user to be able to start sshd service 
+RUN echo "ansible  ALL=(ALL) NOPASSWD: /sbin/rc-service sshd restart" >> /etc/sudoers
 
 # Copy entrypoint script to image and change permissions
 COPY grafana-entrypoint.sh /grafana-entrypoint.sh
-RUN chown grafana:root /grafana-entrypoint.sh && \
+RUN chown ansible:orcha /grafana-entrypoint.sh && \
     chmod 700 /grafana-entrypoint.sh
 
-# Switch to grafana user before startup
-USER grafana
+# Switch to orchastration user
+USER ansible
 
 # Set entrypoint for custom script
 ENTRYPOINT [ "/bin/bash", "/grafana-entrypoint.sh" ]

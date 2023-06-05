@@ -7,12 +7,12 @@ WORKDIR /prometheus
 
 # Install necessary packages
 RUN apk update && \
-    apk add --no-cache wget tar openrc sudo openssh python3
+    apk add --no-cache wget tar openrc sudo openssh python3 curl acl bash
 
-# Create prometheus and ansible user
+# Create orchastration user ansible
 # Allow ansible to do passwordless elevation
-RUN adduser -D -s /bin/sh prometheus && \
-    adduser -D -h /home/ansible -s /bin/sh ansible && \
+RUN addgroup orcha && \
+    adduser -G orcha -D -h /home/ansible -s /bin/bash ansible && \
     echo "ansible ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/ansible && \
     chmod 0440 /etc/sudoers.d/ansible
 
@@ -27,7 +27,7 @@ RUN ssh-keygen -A && \
     chmod 700 /home/ansible/.ssh && \
     touch /home/ansible/.ssh/authorized_keys && \
     chmod 600 /home/ansible/.ssh/authorized_keys && \
-    chown -R ansible:ansible /home/ansible && \
+    chown -R ansible:orcha /home/ansible && \
     passwd -u ansible
 
 
@@ -49,19 +49,19 @@ COPY prometheus.yml /etc/prometheus/prometheus.yml
 EXPOSE 9090
 
 # Change all prometheus-related directory permissions to user prometheus
-RUN chown -R prometheus:prometheus /prometheus && \
-    chown -R prometheus:prometheus /etc/prometheus
+RUN chown -R ansible:orcha /prometheus && \
+    chown -R ansible:orcha /etc/prometheus
 
-# Add exception for prometheus user to be able to start sshd service
-RUN echo "prometheus  ALL=(ALL) NOPASSWD: /sbin/rc-service sshd restart" >> /etc/sudoers
+# Add exception for ansible user to be able to start sshd service
+RUN echo -e 'ansible  ALL=(ALL) NOPASSWD: /sbin/rc-service sshd restart' >> /etc/sudoers
 
 # Copy entrypoint script to image and change permissions
 COPY prometheus-entrypoint.sh /prometheus-entrypoint.sh
-RUN chown prometheus:prometheus /prometheus-entrypoint.sh && \
+RUN chown ansible:orcha /prometheus-entrypoint.sh && \
     chmod 700 /prometheus-entrypoint.sh
     
-# Switch to prometheus before startup
-USER prometheus
+# Switch to orchastration user
+USER ansible
 
 # Set entrypoint to custom script
 ENTRYPOINT [ "/bin/sh", "/prometheus-entrypoint.sh" ]

@@ -1,6 +1,10 @@
+[ansible]
+localhost ansible_connection=local
+
 [monitoring_servers]
 grafana ansible_host=grafana
 prometheus ansible_host=prometheus
 
 [all_servers:children]
 monitoring_servers
+ansible

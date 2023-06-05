@@ -1,0 +1,24 @@
+---
+- name: Test
+  hosts: all 
+
+  tasks:
+
+    - name: Check if node_exporter is running. Stop execution if it is
+      uri:
+        url: "http://localhost:9100"
+        method: GET
+        return_content: no
+      register: service_output
+
+    - debug:
+        msg: "{{ service_output }}"
+
+
+   # - name: fetch
+   #   fetch:
+   #     src: /home/ansible/test.out
+   #     dest: /home/ansible/test.out
+   #     flat: true
+
+    

@@ -1,16 +1,20 @@
 FROM python:latest
 
-# Create user for ansible
-RUN useradd -ms /bin/bash ansible
-
 # Update packages & install helpful command-line tools
 RUN apt-get update && \
-    apt-get install -y iputils-ping && \
-    apt-get install -y vim
+    apt-get install -y iputils-ping vim sudo
+
+# Create orchastration group, user ansible, and add it to the orcha group
+# Allow ansible to do passwordless elevation
+RUN addgroup orcha && \
+    adduser --disabled-password --gecos "" --home /home/ansible --shell /bin/bash ansible && \
+    adduser ansible orcha && \
+    echo "ansible ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/ansible && \
+    chmod 0440 /etc/sudoers.d/ansible
 
 # Create shared directory for host/container & set permissions
-RUN mkdir /ansible && \
-    chown ansible:ansible /ansible
+RUN mkdir /resources && \
+    chown ansible:orcha /resources
 
 # Switch to ansible
 USER ansible
@@ -18,7 +22,7 @@ USER ansible
 # Add the user's local bin directory to the PATH (necessary in order to run ansible-related commands)
 # Set the ANSIBLE_INVENTORY env var to point to the location of the hosts file
 ENV PATH="/home/ansible/.local/bin:${PATH}"
-ENV ANSIBLE_INVENTORY="/ansible/config/hosts"
+ENV ANSIBLE_INVENTORY="/resources/ansible/config/hosts"
 
 # Create and configure ansible user-specific ssh config file to avoid HostKeyChecking prompt when sshing
 RUN mkdir /home/ansible/.ssh/ && \
