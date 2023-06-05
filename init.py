@@ -5,7 +5,7 @@ import sys
 
 def run_docker_compose():
 
-    print("Spinning up the containers...")
+    print("Building the images and spinning up the containers...")
 
     try:
 
@@ -80,7 +80,7 @@ def copy_ssh_pub_key_to_container(containers):
                                        text=True)
             
             docker_exec_chown = subprocess.run(["docker", "exec", "-u", "root", container, 
-                                                "chown", "ansible:ansible", "/home/ansible/.ssh/authorized_keys"],
+                                                "chown", "ansible:orcha", "/home/ansible/.ssh/authorized_keys"],
                                                 capture_output=True,
                                                 text=True)
             
