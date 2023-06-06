@@ -1,3 +1,5 @@
+# "all" is available as a host by default to target all servers, including ansible
+
 [ansible]
 localhost ansible_connection=local
 
@@ -5,6 +7,4 @@ localhost ansible_connection=local
 grafana ansible_host=grafana
 prometheus ansible_host=prometheus
 
-[all_servers:children]
-monitoring_servers
-ansible
+

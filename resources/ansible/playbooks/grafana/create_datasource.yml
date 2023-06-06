@@ -1,0 +1,40 @@
+--- 
+- name: Create a new datasource in grafana
+  hosts: ansible
+  gather_facts: false
+
+  vars:
+    grafana_host: "grafana"
+    grafana_port: "3000"
+    creds: "admin:admin" # Don't do this. Either create an API key via the Grafana dashboard or store credentials inside an ansible vault file
+    api_endpoint: "api/datasources"
+    prometheus_url: "http://prometheus:9090"
+
+  tasks:
+
+    - name: Prepare json datasource payload
+      set_fact:
+        payload:
+          name: "{{ ds_name }}"
+          type: "{{ ds_type }}"
+          url: "{{ prometheus_url }}"
+          access: "proxy"
+          isDefault: false
+
+    - name: Call grafana API endpoint to create datasource
+      uri:
+        url: "http://{{ creds }}@{{ grafana_host }}:{{ grafana_port }}/{{ api_endpoint }}"
+        method: POST
+        body_format: json
+        force_basic_auth: true # This is required otherwise a 401 is returned
+        body: "{{ payload }}"
+        headers: 
+          accept: "application/json"
+          content-type: "application/json"
+        return_content: yes
+        status_code: 200
+      register: response
+
+    - name: Output new datasource info 
+      debug:
+        msg: "Successfully created new [{{ ds_type }}] datasource named [{{ ds_name }}] with uid [{{ response.json.datasource.uid }}]"

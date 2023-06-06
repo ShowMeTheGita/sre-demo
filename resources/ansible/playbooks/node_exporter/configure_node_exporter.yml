@@ -1,0 +1,12 @@
+- name: Download & start node exporter
+  hosts: "{{ target_hosts }}"
+  gather_facts: true
+  
+  tasks: 
+    - name: Include download node exporter tasks
+      include_tasks: ./tasks/download_node_exporter.yml
+      when: download | default(false) | bool # Skips if "download=true" is not passed when executing playbook
+
+    - name: Include start node exporter tasks
+      include_tasks: ./tasks/start_node_exporter.yml
+      when: start | default(false) | bool # Skips if "start=true" is not passed when executing playbook

@@ -1,0 +1,21 @@
+--- 
+
+- name: Backup prometheus.yml
+  copy:
+    src: /etc/prometheus/prometheus.yml
+    dest: /etc/prometheus/prometheus_BAK.yml
+    owner: ansible
+    group: orcha 
+    mode: 0770
+    remote_src: true
+   
+- name: Move the updated prometheus.yml to target
+  copy:
+    src: /resources/prometheus/prometheus.yml
+    dest: /etc/prometheus/prometheus.yml
+    owner: ansible
+    group: orcha 
+    mode: 0770
+    force: true
+    
+...
