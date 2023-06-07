@@ -6,35 +6,37 @@
   vars:
     grafana_host: "grafana"
     grafana_port: "3000"
-    creds: "admin:admin" # Don't do this. Use the ansible-vault functionality to store credentials, either with user:pass or a grafana API key
+    grafana_creds: "admin:admin" # Don't do this. Use the ansible-vault functionality to store credentials, either with user:pass or a grafana API key
     api_endpoint: "api/datasources"
     prometheus_url: "http://prometheus:9090"
 
   tasks:
 
-    - name: Prepare json datasource payload
+    - name: Prepare json payload for datasource creation
       set_fact:
-        payload:
+        post_payload:
           name: "{{ ds_name }}"
           type: "{{ ds_type }}"
           url: "{{ prometheus_url }}"
           access: "proxy"
-          isDefault: false
+          isDefault: "{{ ds_is_default | default(true) }}"
 
     - name: Call grafana API endpoint to create datasource
       uri:
-        url: "http://{{ creds }}@{{ grafana_host }}:{{ grafana_port }}/{{ api_endpoint }}"
+        url: "http://{{ grafana_creds }}@{{ grafana_host }}:{{ grafana_port }}/{{ api_endpoint }}"
         method: POST
         body_format: json
         force_basic_auth: true # This is required otherwise a 401 is returned
-        body: "{{ payload }}"
+        body: "{{ post_payload }}"
         headers: 
           accept: "application/json"
           content-type: "application/json"
         return_content: yes
         status_code: 200
-      register: response
+      register: post_ds_response
 
     - name: Output datasource info 
       debug:
-        msg: "New grafana [{{ ds_type }}] datasource successfully created with name [{{ ds_name }}] and uid [{{ response.json.datasource.uid }}]"
+        msg: 
+          - "New grafana [{{ ds_type }}] datasource successfully created with name [{{ ds_name }}] and uid [{{ post_ds_response.json.datasource.uid }}]"
+          - "(!) Refresh browser with clear-cache if datasource data is not showing in the Grafana 'Connections' tab"

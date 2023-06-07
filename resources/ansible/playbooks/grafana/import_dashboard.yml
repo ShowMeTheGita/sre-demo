@@ -27,8 +27,8 @@
       shell: "/bin/cat ./grafana_datasources.json | jq '.[] | select (.name == \"{{ ds_name | default('PrometheusDS')}}\").uid'"
       register: datasource_uid_raw
 
-    - name: Cleanup datasource uid
-      shell: "echo {{ datasource_uid_raw.stdout }}"
+    - name: Cleanup datasource uid string format
+      shell: "/bin/echo {{ datasource_uid_raw.stdout }}"
       register: datasource_uid 
 
     - name: "Change value of datasource uid on dashboard json to uid of datasource [{{ ds_name }}] and create an updated dashboard json file"
@@ -45,10 +45,16 @@
           Accept: application/json
           Content-Type: application/json
         status_code: 200
-      register: response
 
-    - debug:
-        msg: "{{ response }}"
-        
+    - name: Cleanup temporary files
+      file:
+        path: "./updated_{{ dashboard_file }}"
+        state: absent
+
+    - name: Output details
+      debug:
+        msg: 
+          - "Dashboard [{{ dashboard_file }}] successfully imported and attached to datasource [{{ ds_name }}]!"
+          - "Look for the dashboard over at http://{{ grafana_server }} on the 'Dashboards' tab"
 
       
