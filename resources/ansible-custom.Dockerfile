@@ -2,7 +2,7 @@ FROM python:latest
 
 # Update packages & install helpful command-line tools
 RUN apt-get update && \
-    apt-get install -y iputils-ping vim sudo
+    apt-get install -y iputils-ping vim sudo jq
 
 # Create orchastration group, user ansible, and add it to the orcha group
 # Allow ansible to do passwordless elevation

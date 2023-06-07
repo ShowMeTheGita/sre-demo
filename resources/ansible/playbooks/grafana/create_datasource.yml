@@ -6,7 +6,7 @@
   vars:
     grafana_host: "grafana"
     grafana_port: "3000"
-    creds: "admin:admin" # Don't do this. Either create an API key via the Grafana dashboard or store credentials inside an ansible vault file
+    creds: "admin:admin" # Don't do this. Use the ansible-vault functionality to store credentials, either with user:pass or a grafana API key
     api_endpoint: "api/datasources"
     prometheus_url: "http://prometheus:9090"
 
@@ -35,6 +35,7 @@
         status_code: 200
       register: response
 
-    - name: Output new datasource info 
+    - name: Output datasource info 
       debug:
-        msg: "Successfully created new [{{ ds_type }}] datasource named [{{ ds_name }}] with uid [{{ response.json.datasource.uid }}]"
+        msg: | 
+          "New grafana [{{ ds_type }}] datasource successfully created with name [{{ ds_name }}] and uid [{{ response.json.datasource.uid }}]"
