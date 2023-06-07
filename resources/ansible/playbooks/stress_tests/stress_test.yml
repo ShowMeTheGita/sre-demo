@@ -1,0 +1,49 @@
+- name: Stress test containers
+  hosts: "{{ target_hosts }}"
+
+  vars:
+    stress_cpu:       "{{ cpu      | default(false) }}"
+    stress_ram:       "{{ ram      | default(false) }}"
+    stress_io:        "{{ io       | default(false) }}"
+    stress_network:   "{{ network  | default(false) }}"
+    timeout:          "{{ duration | default(10)    }}"
+
+    # RAM stress default args
+    bytes_per_vm_worker: "{{ ram_mem | default('2G') }}"
+    # I/O stress default args
+    workers: "{{ num_workers | default('4') }}"
+
+
+  tasks:
+
+    - name: Include CPU stress tasks
+      include_tasks: ./tasks/stress_cpu.yml
+      when: stress_cpu is defined and stress_cpu | bool
+
+    - name: Include RAM stress tasks
+      include_tasks: ./tasks/stress_ram.yml
+      when: stress_ram is defined and stress_ram | bool
+
+    - name: Include I/O stress tasks
+      include_tasks: ./tasks/stress_io.yml
+      when: stress_io is defined and stress_io | bool  
+
+    - name: Include Network stress tasks
+      include_tasks: ./tasks/stress_network.yml
+      when: stress_network is defined and stress_network | bool
+
+    - name: Wait for stress test to finish
+      pause:
+        seconds: "{{ timeout }}"
+        prompt: "\n
+                Stressing for [{{ timeout }}] seconds using:\n
+                {{ '(-)' if stress_cpu | bool }} {{ num_cpus if stress_cpu | bool }} {{ 'CPU cores\n' if stress_cpu | bool }}
+                {{ '(-) RAM with' if stress_ram | bool }} {{ bytes_per_vm_worker if stress_ram | bool }}{{ '\n' if stress_ram | bool }}
+                {{ '(-) I/O with' if stress_io | bool }} {{ workers if stress_io | bool }} {{ 'workers spinning on sync()\n' if stress_io | bool }}
+                {{ '(-) Network using iperf tool\n' if stress_network | bool }}
+                \n"
+
+    - name: Kill iperf
+      shell: "kill -9 $(pidof iperf)"
+      when: stress_network is defined and stress_network | bool
+                

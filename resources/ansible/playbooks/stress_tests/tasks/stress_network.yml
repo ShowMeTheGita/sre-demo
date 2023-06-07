@@ -1,0 +1,8 @@
+- name: Start iperf
+  shell: /usr/bin/iperf -s > /dev/null 2>&1 &
+
+- name: Run iperf network stress command
+  shell: "/usr/bin/iperf \
+        -c {{ ansible_hostname }} \
+        -t {{ timeout }} \ 
+        > /dev/null 2>&1 &"

@@ -1,0 +1,13 @@
+- name: Get total amount of CPUs
+  shell: nproc
+  register: max_cpus
+
+- name: Set amount of CPUs to stress
+  set_fact:
+    num_cpus: "{{ num_cpus | default(max_cpus.stdout) }}"  
+
+- name: Run CPU stress command
+  shell: "/usr/bin/stress \
+          --cpu {{ num_cpus }} \
+          --timeout {{ timeout }} \
+          > /dev/null 2>&1 &"

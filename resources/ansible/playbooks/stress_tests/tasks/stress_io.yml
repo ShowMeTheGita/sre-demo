@@ -1,0 +1,5 @@
+- name: Run I/O stress command
+  shell: "/usr/bin/stress \
+        --io {{ workers }}
+        --timeout {{ timeout }} \
+          > /dev/null 2>&1 &"
