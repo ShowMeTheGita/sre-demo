@@ -1,5 +1,5 @@
 ---
-- name: Stress-test the CPU
+- name: Stress-test CPUs
   hosts: "{{ target_hosts }}"
   gather_facts: false
 
@@ -19,5 +19,6 @@
     - name: Wait for stress to finish 
       pause:
         seconds: "{{ duration }}"
-        prompt: "Stressing [{{ num_cpus }}] CPUs for [{{ duration }}] seconds..."
-  
+        prompt: "\nStressing [{{ num_cpus }}] CPUs for [{{ duration }}] seconds..."
+
+...
