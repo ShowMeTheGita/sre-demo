@@ -37,5 +37,4 @@
 
     - name: Output datasource info 
       debug:
-        msg: | 
-          "New grafana [{{ ds_type }}] datasource successfully created with name [{{ ds_name }}] and uid [{{ response.json.datasource.uid }}]"
+        msg: "New grafana [{{ ds_type }}] datasource successfully created with name [{{ ds_name }}] and uid [{{ response.json.datasource.uid }}]"
