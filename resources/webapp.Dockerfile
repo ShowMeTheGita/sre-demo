@@ -48,7 +48,9 @@ RUN chown ansible:orcha /webapp-entrypoint.sh && \
 USER ansible
 
 # Install dependencies
+# 'forever' is a helpful start/stopper for nodejs apps
 RUN npm install
+RUN npm install forever -g
 
 # Expose the webapp port
 EXPOSE 4000

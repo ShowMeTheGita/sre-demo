@@ -31,7 +31,7 @@
       shell: "/bin/echo {{ datasource_uid_raw.stdout }}"
       register: datasource_uid 
 
-    - name: "Change value of datasource uid on dashboard json to uid of datasource [{{ ds_name }}] and create an updated dashboard json file"
+    - name: "Change value of datasource uid on dashboard json to uid of datasource [{{ ds_name | default('PrometheusDS') }}] and create an updated dashboard json file"
       shell: "jq '.inputs[0].value = \"{{ datasource_uid.stdout }}\"' ./{{ dashboard_file }} > updated_{{ dashboard_file }}"
 
     - name: Import dashboard to Grafana
@@ -54,7 +54,5 @@
     - name: Output details
       debug:
         msg: 
-          - "Dashboard [{{ dashboard_file }}] successfully imported and attached to datasource [{{ ds_name }}]!"
-          - "Look for the dashboard over at http://{{ grafana_server }} on the 'Dashboards' tab"
-
-      
+          - "Dashboard [{{ dashboard_file }}] successfully imported and attached to datasource [{{ ds_name | default('PrometheusDS') }}]!"
+          - "Look for the dashboard over at http://localhost:3000 on the 'Dashboards' tab"

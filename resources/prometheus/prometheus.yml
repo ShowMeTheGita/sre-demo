@@ -37,6 +37,11 @@ scrape_configs:
           type: container
           container: prometheus
           env: demo
+      - targets: ["webapp:9100"]
+        labels:
+          type: container
+          container: webapp
+          env: demo
 
   - job_name: "blackbox-http"
     metrics_path: /probe
@@ -50,7 +55,7 @@ scrape_configs:
       - target_label: "__address__"
         replacement: "webapp:9115"
     static_configs:
-      - targets: ["http://webapp:4000/"]
+      - targets: ["http://webapp:4000/index"]
         labels:
           type: container
           container: webapp
