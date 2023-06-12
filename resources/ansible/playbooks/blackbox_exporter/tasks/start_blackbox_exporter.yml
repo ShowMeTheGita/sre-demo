@@ -1,0 +1,28 @@
+- name: Check if blackbox exporter is running
+  uri:
+    url: "http://{{ ansible_hostname }}:{{ blackbox_port }}"
+    method: GET
+    return_content: false
+  register: blackbox_exporter_status
+  ignore_errors: true 
+
+- name: Start blackbox exporter
+  shell: "nohup /usr/bin/blackbox_exporter --config.file /etc/blackbox_exporter/blackbox.yml > /dev/null 2>&1 &"
+  when: blackbox_exporter_status.status != 200
+
+- name: Curl blackbox exporter's endpoint
+  uri:
+    url: "http://{{ ansible_hostname }}:{{ blackbox_port }}"
+    method: GET
+    return_content: false
+  register: blackbox_exporter_status
+
+- name: Fail if blackbox exporter isn't running
+  fail:
+    msg: "Blackbox exporter failed to start. Status code returned --> [{{ blackbox_exporter_status.status }}]"
+  when: blackbox_exporter_status.status != 200
+
+- name: Output blackbox exporter status
+  debug: 
+    msg: "Blackbox exporter status on host [{{ ansible_hostname }}] is [{{ blackbox_exporter_status.status }}]"
+  when: blackbox_exporter_status.status == 200

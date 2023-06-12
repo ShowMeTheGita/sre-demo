@@ -1,0 +1,42 @@
+- name: Create directory for blackbox exporter
+  file:
+    path: "/etc/blackbox_exporter"
+    state: directory
+    owner: ansible
+    group: orcha
+  become: true
+
+- name: Download blackbox exporter
+  get_url:
+    url: "https://github.com/prometheus/blackbox_exporter/releases/download/v{{ blackbox_version }}/{{ blackbox_release }}.tar.gz"
+    dest: "/etc/blackbox_exporter/"
+
+- name: Extract blackbox exporter
+  unarchive:
+    src: "/etc/blackbox_exporter/{{ blackbox_release }}.tar.gz"
+    dest: "/etc/blackbox_exporter/"
+    remote_src: true
+
+- name: Move contents from extracted folder to parent folder and delete extracted folder
+  shell: "/bin/mv /etc/blackbox_exporter/{{ blackbox_release }}/* /etc/blackbox_exporter && \ 
+          /bin/rmdir /etc/blackbox_exporter/{{ blackbox_release }}"
+
+- name: Copy blackbox exporter binary to correct location with set permissions
+  copy:
+    src: /etc/blackbox_exporter/blackbox_exporter
+    dest: /usr/bin/blackbox_exporter
+    remote_src: true
+    owner: ansible
+    group: orcha
+    mode: 0770
+  become: true
+
+- name: Cleanup copied binary
+  file:
+    path: /etc/blackbox_exporter/blackbox_exporter
+    state: absent
+
+- name: Cleanup .tar.gz
+  file:
+    path: "/etc/blackbox_exporter/{{ blackbox_release }}.tar.gz"
+    state: absent

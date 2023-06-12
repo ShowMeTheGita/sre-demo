@@ -1,6 +1,6 @@
 ---
 - name: Ping and retrieve host information
-  hosts: all_servers 
+  hosts: all 
   gather_facts: true
   
   tasks:

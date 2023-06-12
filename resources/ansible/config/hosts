@@ -7,4 +7,6 @@ localhost ansible_connection=local
 grafana ansible_host=grafana
 prometheus ansible_host=prometheus
 
+[app_servers]
+webapp ansible_host=webapp
 

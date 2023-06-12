@@ -11,6 +11,7 @@ alerting:
 rule_files:
 
 scrape_configs:
+
   - job_name: "prometheus"
     static_configs:
       - targets: ["prometheus:9090"]
@@ -26,15 +27,31 @@ scrape_configs:
           type: container
           container: ansible
           env: demo
-
       - targets: ["grafana:9100"]
         labels:
           type: container
           container: grafana
           env: demo
-
       - targets: ["prometheus:9100"]
         labels:
           type: container
           container: prometheus
+          env: demo
+
+  - job_name: "blackbox-http"
+    metrics_path: /probe
+    params:
+      module: ["http_2xx"]
+    relabel_configs:
+      - source_labels: [ "__address__" ]
+        target_label: "__param_target"
+      - source_labels: [ "__param_target" ]
+        target_label: "instance"
+      - target_label: "__address__"
+        replacement: "webapp:9115"
+    static_configs:
+      - targets: ["http://webapp:4000/"]
+        labels:
+          type: container
+          container: webapp
           env: demo

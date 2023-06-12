@@ -3,7 +3,7 @@ FROM node:14-alpine
 
 # Install necessary packages
 RUN apk update && \
-    apk add --no-cache openrc sudo openssh acl bash
+    apk add --no-cache openrc sudo openssh acl bash python3 tar
 
 # Create orchastration user ansible
 # Allow ansible to do passwordless elevation
@@ -53,6 +53,8 @@ RUN npm install
 # Expose the webapp port
 EXPOSE 4000
 
+# Expose blackbox_exporter port
+EXPOSE 9115
 
 # Set entrypoint to custom script
 ENTRYPOINT [ "/bin/sh", "/webapp-entrypoint.sh" ]

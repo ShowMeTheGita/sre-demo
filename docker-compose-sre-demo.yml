@@ -44,4 +44,5 @@ services:
     hostname: webapp
     ports:
       - 4000:4000
+      - 9115:9115
 
