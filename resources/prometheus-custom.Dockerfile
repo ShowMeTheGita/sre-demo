@@ -48,7 +48,7 @@ COPY prometheus/prometheus.yml /etc/prometheus/prometheus.yml
 # Expose Prometheus port
 EXPOSE 9090
 
-# Change all prometheus-related directory permissions to user prometheus
+# Change all prometheus-related directory permissions to ansible orchastration user
 RUN chown -R ansible:orcha /prometheus && \
     chown -R ansible:orcha /etc/prometheus
 
