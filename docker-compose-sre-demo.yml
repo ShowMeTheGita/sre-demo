@@ -34,3 +34,14 @@ services:
     hostname: ansible
     volumes:
       - ./resources:/resources
+
+  webapp:
+    container_name: webapp
+    build:
+      context: ./resources
+      dockerfile: webapp.Dockerfile
+    image: webapp:demo
+    hostname: webapp
+    ports:
+      - 4000:4000
+
