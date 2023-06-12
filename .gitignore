@@ -1,1 +1,3 @@
 resources/ansible/config/ida_rsa.pub
+resources/webapp/node_modules/
+resources/webapp/package-lock.json
