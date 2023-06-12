@@ -1,0 +1,60 @@
+---
+- name: Import custom community dashboard to grafana
+  hosts: ansible
+
+  vars:
+    grafana_creds: "admin:admin" # Don't do this. Use the ansible-vault functionality to store credentials, either with user:pass or a grafana API key
+    grafana_server: "grafana:3000"
+    ds_api_endpoint: "api/datasources"
+    import_dashboard_api_endpoint: "api/dashboards/import" 
+    dashboard_file: "node-exporter-full_rev31.json" # If this is a community dashboard json, it must first be modified in order to be accepted via POST
+
+  tasks:
+
+    - name: Get all available grafana datasources
+      uri:
+        url: "http://{{ grafana_creds }}@{{ grafana_server }}/{{ ds_api_endpoint }}"
+        method: "GET"
+        force_basic_auth: true
+        return_content: true
+        dest: ./grafana_datasources.json
+        owner: ansible
+        group: orcha
+        status_code: 200
+      register: datasources
+
+    - name: Retrieve specific datasource uid
+      shell: "/bin/cat ./grafana_datasources.json | jq '.[] | select (.name == \"{{ ds_name | default('PrometheusDS')}}\").uid'"
+      register: datasource_uid_raw
+
+    - name: Cleanup datasource uid string format
+      shell: "/bin/echo {{ datasource_uid_raw.stdout }}"
+      register: datasource_uid 
+
+    - name: "Change value of datasource uid on dashboard json to uid of datasource [{{ ds_name }}] and create an updated dashboard json file"
+      shell: "jq '.inputs[0].value = \"{{ datasource_uid.stdout }}\"' ./{{ dashboard_file }} > updated_{{ dashboard_file }}"
+
+    - name: Import dashboard to Grafana
+      uri:
+        url: "http://{{ grafana_creds }}@{{ grafana_server }}/{{ import_dashboard_api_endpoint }}"
+        method: "POST"
+        force_basic_auth: true
+        src: ./updated_{{ dashboard_file }}
+        body_format: json
+        headers: 
+          Accept: application/json
+          Content-Type: application/json
+        status_code: 200
+
+    - name: Cleanup temporary files
+      file:
+        path: "./updated_{{ dashboard_file }}"
+        state: absent
+
+    - name: Output details
+      debug:
+        msg: 
+          - "Dashboard [{{ dashboard_file }}] successfully imported and attached to datasource [{{ ds_name }}]!"
+          - "Look for the dashboard over at http://{{ grafana_server }} on the 'Dashboards' tab"
+
+      

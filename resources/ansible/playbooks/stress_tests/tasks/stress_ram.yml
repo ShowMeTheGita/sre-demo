@@ -1,0 +1,6 @@
+- name: Run RAM stress command
+  shell: "/usr/bin/stress \
+        --vm 1 \
+        --vm-bytes {{ bytes_per_vm_worker }} \
+        --timeout {{ timeout }} \
+        > /dev/null 2>&1 &"

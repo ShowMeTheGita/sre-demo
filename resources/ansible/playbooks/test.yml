@@ -1,24 +1,9 @@
 ---
 - name: Test
-  hosts: all 
+  hosts: ansible 
 
   tasks:
 
-    - name: Check if node_exporter is running. Stop execution if it is
-      uri:
-        url: "http://localhost:9100"
-        method: GET
-        return_content: no
-      register: service_output
+    - name: test
+      shell: /bin/bash -c 'for ((i=30; i>=0; i--)); do echo "Stressing CPU for {{ duration }} more seconds..." ; sleep 5; done'
 
-    - debug:
-        msg: "{{ service_output }}"
-
-
-   # - name: fetch
-   #   fetch:
-   #     src: /home/ansible/test.out
-   #     dest: /home/ansible/test.out
-   #     flat: true
-
-    

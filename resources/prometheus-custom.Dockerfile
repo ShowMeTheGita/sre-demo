@@ -43,12 +43,12 @@ RUN mv prometheus-2.44.0.linux-amd64/* /usr/local/bin/ && \
 
 # Create the Prometheus directory and copy the prometheus.yml to the image
 RUN mkdir /etc/prometheus
-COPY prometheus.yml /etc/prometheus/prometheus.yml
+COPY prometheus/prometheus.yml /etc/prometheus/prometheus.yml
 
 # Expose Prometheus port
 EXPOSE 9090
 
-# Change all prometheus-related directory permissions to user prometheus
+# Change all prometheus-related directory permissions to ansible orchastration user
 RUN chown -R ansible:orcha /prometheus && \
     chown -R ansible:orcha /etc/prometheus
 

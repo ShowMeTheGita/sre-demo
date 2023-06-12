@@ -5,7 +5,7 @@ import sys
 
 def run_docker_compose():
 
-    print("Building the images and spinning up the containers...")
+    print("Building images and spinning up containers...")
 
     try:
 

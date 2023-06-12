@@ -1,0 +1,17 @@
+- name: Download & start node exporter
+  hosts: "{{ target_hosts }}"
+  gather_facts: true
+
+  vars:
+    download: default(true) | bool
+    start: default(true) | bool
+  
+  tasks: 
+
+    - name: Include download node exporter tasks
+      include_tasks: ./tasks/download_node_exporter.yml
+      when: download is defined and download | bool
+
+    - name: Include start node exporter tasks
+      include_tasks: ./tasks/start_node_exporter.yml
+      when: start is defined and start | bool

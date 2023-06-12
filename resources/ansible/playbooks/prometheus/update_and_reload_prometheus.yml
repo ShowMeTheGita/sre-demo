@@ -1,0 +1,11 @@
+---
+- name: Update and reload prometheus
+  hosts: prometheus
+  gather_facts: false
+
+  tasks:
+    - name: Include update prometheus.yml configuration tasks
+      include_tasks: ./tasks/update_prometheus_config.yml
+
+    - name: Include reload prometheus tasks
+      include_tasks: ./tasks/reload_prometheus.yml
