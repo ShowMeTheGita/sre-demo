@@ -72,7 +72,7 @@
         seconds: "{{ timeout }}"
         prompt: "\n
                 Stressing for [{{ timeout }}] seconds using:\n
-                {{ '(-)' if stress_cpu | bool }} {{ num_cpus if stress_cpu | bool }} {{ 'CPU cores\n' if stress_cpu | bool }}
+                {{ '(-)' if stress_cpu | bool }} {{ num_cores if stress_cpu | bool }} {{ 'CPU cores\n' if stress_cpu | bool }}
                 {{ '(-) RAM with' if stress_ram | bool }} {{ bytes_per_vm_worker if stress_ram | bool }}{{ '\n' if stress_ram | bool }}
                 {{ '(-) I/O with' if stress_io | bool }} {{ workers if stress_io | bool }} {{ 'workers spinning on sync()\n' if stress_io | bool }}
                 {{ '(-) Network using iperf tool\n' if stress_network | bool }}
