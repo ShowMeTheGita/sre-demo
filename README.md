@@ -92,3 +92,7 @@ One main difference between this image and the regular `node` images is that you
 ### Building the solution manually
 As mentioned the `init.py` script will build the solution from top to bottom, however the script can also be ran with the `--basic` flag to only build the images, start the containers, and move ssh public keys around. This will start up the containers and provide `ansible` connectivity to others but not perform any additional action that requires `ansible-playbooks` execution.
 At an even lower level, you can manually perform the `docker-compose` and `docker exec` commands called by the `init.py` functions.
+
+---  
+###  Questions, Suggestions, Requests
+Feel free to open [labeled issues](https://github.com/ShowMeTheGita/sre-demo/issues) for any topic that comes to mind. Feedback is much appreciated!
