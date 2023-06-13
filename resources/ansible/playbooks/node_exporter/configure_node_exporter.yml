@@ -10,7 +10,7 @@
 # download        | bool | default(true)  : defines if blackbox should be downloaded
 # start           | bool | default(true)  : defines if blackbox should be started
 #
-# # Examples:
+# # Examples
 #
 # Download and start node exporter on all containers
 # ansible-playbook configure_node_exporter.yml -e target_hosts=all
