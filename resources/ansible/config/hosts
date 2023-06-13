@@ -6,6 +6,7 @@ localhost ansible_connection=local
 [monitoring_servers]
 grafana ansible_host=grafana
 prometheus ansible_host=prometheus
+alertmanager ansible_host=alertmanager
 
 [app_servers]
 webapp ansible_host=webapp
