@@ -4,8 +4,16 @@ import shutil
 import sys
 import time
 
+def build_alpine_ssh_image():
+
+    print_yellow("(-) Building required 'alpine-ssh:demo' image...")
+
+    subprocess.run(["docker-compose", "-f", "docker-compose-sre-demo.yml", "build", "alpine_ssh"])
 
 def run_docker_compose():
+
+    # This image needs to be built beforehand
+    build_alpine_ssh_image()
 
     print_yellow("(-) Building images and spinning up containers...")
     subprocess.run(["docker-compose", "-f", "docker-compose-sre-demo.yml", "up", "-d"])
@@ -141,6 +149,7 @@ def output_container_information():
         print_green("(+) Full setup completed\n")
         print_green("(!) Grafana is running with default admin/admin credentials on http://localhost:3000/")
         print_green("(!) Prometheus is running on http://localhost:9090/")
+        print_green("(!) Alertmanager is running on http://localhost:9093/")
         print_green("(!) Nodejs webapp is running on http://localhost:4000/index")
     else:
         print_green("(+) Basic setup completed!")
@@ -149,12 +158,10 @@ def output_container_information():
 
 def full_or_partial_execution():
 
-    containers = ["grafana", "prometheus", "webapp"]
+    containers = ["grafana", "prometheus", "webapp", "alertmanager"]
     datasource_name = "PrometheusDS"
     datasource_type = "prometheus"
     dashboards = ["node-exporter-full_rev31.json", "prometheus-blackbox-exporter_rev3.json"]
-
-    prechecks()
 
     run_docker_compose() # Builds the images and starts the containers
     time.sleep(10)

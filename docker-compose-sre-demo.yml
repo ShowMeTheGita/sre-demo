@@ -1,5 +1,15 @@
 version: '3'
 services:
+
+  # alpine_ssh is a modified lightweight alpine:latest to include out-of-the-box ssh and other configurations for ansible
+  alpine_ssh:
+    build:
+      context: ./resources
+      dockerfile: alpine-ssh.Dockerfile
+    image: alpine-ssh:demo
+    profiles: # This tells docker not create a container with this image, only build it
+      - donotstart 
+
   prometheus:
     container_name: prometheus
     build:
@@ -11,6 +21,18 @@ services:
       - 9090:9090
     depends_on:
       - ansible
+
+  alertmanager:
+    container_name: alertmanager
+    build:
+      context: ./resources
+      dockerfile: alertmanager-custom.Dockerfile
+    image: alertm-custom:demo
+    hostname: alertmanager
+    ports:
+      - 9093:9093
+    depends_on:
+      - prometheus
 
   grafana:
     container_name: grafana
