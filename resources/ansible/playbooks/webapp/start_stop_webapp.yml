@@ -17,6 +17,7 @@
 #
 # Stop the webapp
 # ansible-playbook start_stop_webapp.yml -e start_stop=stop
+#
 
 ---
 - name: Start/stop webapp
