@@ -1,0 +1,20 @@
+- name: Download & start blackbox exporter
+  hosts: "{{ target_hosts }}"
+  gather_facts: true
+
+  vars:
+    blackbox_version: "0.24.0"
+    blackbox_release: "blackbox_exporter-0.24.0.linux-amd64"
+    blackbox_port: "9115"
+    download: default(true) | bool
+    start: default(true) | bool
+  
+  tasks: 
+
+    - name: Include download blackbox exporter tasks
+      include_tasks: ./tasks/download_blackbox_exporter.yml
+      when: download is defined and download | bool
+
+    - name: Include start blackbox exporter tasks
+      include_tasks: ./tasks/start_blackbox_exporter.yml
+      when: start is defined and start | bool

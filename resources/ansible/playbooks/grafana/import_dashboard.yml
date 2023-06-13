@@ -7,9 +7,14 @@
     grafana_server: "grafana:3000"
     ds_api_endpoint: "api/datasources"
     import_dashboard_api_endpoint: "api/dashboards/import" 
-    dashboard_file: "node-exporter-full_rev31.json" # If this is a community dashboard json, it must first be modified in order to be accepted via POST
+    dashboard_file: "{{ dashboard }}" # If this is a community dashboard json, it must first be modified in order to be accepted via POST
 
   tasks:
+
+    - name: Check if required variables are set
+      fail:
+        msg: "Required variable 'dashboard_file' is not set. Must specify path to dashboard json file"
+      when: dashboard is not defined
 
     - name: Get all available grafana datasources
       uri:
@@ -31,30 +36,33 @@
       shell: "/bin/echo {{ datasource_uid_raw.stdout }}"
       register: datasource_uid 
 
-    - name: "Change value of datasource uid on dashboard json to uid of datasource [{{ ds_name }}] and create an updated dashboard json file"
-      shell: "jq '.inputs[0].value = \"{{ datasource_uid.stdout }}\"' ./{{ dashboard_file }} > updated_{{ dashboard_file }}"
+    - name: "Change value of datasource uid on dashboard json to uid of datasource [{{ ds_name | default('PrometheusDS') }}] and create an updated dashboard json file"
+      shell: "jq '.inputs[0].value = \"{{ datasource_uid.stdout }}\"' ./{{ dashboard_file }} > updated_dashboard.json"
 
     - name: Import dashboard to Grafana
       uri:
         url: "http://{{ grafana_creds }}@{{ grafana_server }}/{{ import_dashboard_api_endpoint }}"
         method: "POST"
         force_basic_auth: true
-        src: ./updated_{{ dashboard_file }}
+        src: ./updated_dashboard.json
         body_format: json
         headers: 
           Accept: application/json
           Content-Type: application/json
         status_code: 200
 
-    - name: Cleanup temporary files
+    - name: Cleanup updated dashboard file
       file:
-        path: "./updated_{{ dashboard_file }}"
+        path: "./updated_dashboard.json"
         state: absent
+
+    - name: Cleanup temporary datasources json
+      file:
+        path: "./grafana_datasources.json"
+        state: absent 
 
     - name: Output details
       debug:
         msg: 
-          - "Dashboard [{{ dashboard_file }}] successfully imported and attached to datasource [{{ ds_name }}]!"
-          - "Look for the dashboard over at http://{{ grafana_server }} on the 'Dashboards' tab"
-
-      
+          - "Dashboard [{{ dashboard_file }}] successfully imported and attached to datasource [{{ ds_name | default('PrometheusDS') }}]!"
+          - "Look for the dashboard over at http://localhost:3000 on the 'Dashboards' tab"
