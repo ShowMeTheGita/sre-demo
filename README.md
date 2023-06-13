@@ -63,11 +63,11 @@ The `init.py` is responsible for most of the heavy work of building the `docker`
 Here's a quick list, in order, of what's going on **behind the scenes**:
 1. Starts by running `docker-compose` using the `docker-compose-sre-demon.yml` file included in the repository to build the `docker images` and start the `docker containers`
 2. Generates the required *ssh key-pair* inside the `ansible` container and copies the public key to all other containers. This allows the `ansible` container to be able to connect to all other containers right out-of-the-box
-3. Begins executing `ansible playbooks`
-3.1 Downloads and starts *node_exporter* on all containers
-3.2 Creates a `grafana datasource` linked to the `prometheus` container
-3.3 Downloads and starts *blackbox_exporter* on the `webapp` container
-3.4 Imports custom `grafana dashboards` 
+3. Begins executing `ansible playbooks`  
+3.1 Downloads and starts *node_exporter* on all containers  
+3.2 Creates a `grafana datasource` linked to the `prometheus` container  
+3.3 Downloads and starts *blackbox_exporter* on the `webapp` container  
+3.4 Imports custom `grafana dashboards`  
 
 Once completed, you'll be able to **access the apps on the following ports**:
 * *localhost:3000* for `grafana`
