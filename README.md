@@ -77,14 +77,14 @@ Once completed, you'll be able to **access the apps on the following ports**:
 ### Images Rundown
 There are two things all containers have in common: **user and group** and **ssh configuration**.
 In order for `ansible` to be able to correctly *ssh* to all containers and be responsible for all administration-related tasks, all images were specifically designed to have the user and group `ansible:orcha` by default, as well as have the necessary ssh configurations required by the user and group to perform various tasks, such as *passwordless ssh* and *passwordless elevation*. This allows us to create consistency along all containers without having ansible resort to running playbooks as `root`.
-#### > Ansible
+#### > Ansible <img src="https://logos-download.com/wp-content/uploads/2016/10/Ansible_logo.png" alt="ansible_logo" width="20">
 The `ansible` image is built using the `ansible-custom.Dockerfile` which uses the `python:latest` image. Since `ansible` uses mostly `python`, this image choice seemed to make sense. The `Dockerfile` is responsible for downloading `ansible` and applying some good-to-have-out-of-the-box `ansible` and *ssh* configurations.
-#### > Grafana
+#### > Grafana <img src="https://grafana.com/static/img/icons/icon-grafana-black.svg" alt="grafana_logo" width="20">
 The `grafana` image uses the `grafana-custom.Dockerfile` which is a modified `grafana/grafana:9.5.2` image. The modifications done to the image include adding the mentioned `ansible:orcha` user and group, as well as performing the necessary ssh configurations. The `ENTRYPOINT` was also overriden so that the image **always** restarts the `sshd` service whenever the container is started/stopped. This is done by including a shell script which performs the restart before running the regular `grafana:9.5.2` entrypoint script `run.sh`.
-#### > Prometheus
+#### > Prometheus <img src="https://upload.wikimedia.org/wikipedia/commons/3/38/Prometheus_software_logo.svg" alt="prometheus_logo" width="20">
 The `prometheus` image was the toughest to work with, since the default image that is available on the `Dockerhub` didn't even come with *package managers* or ways to easily configure services (sshd *wink*). For this reason the lightweight image `alpine:latest` is used instead, with all the overhead of the `prometheus` installation being done in the `prometheus-custom.Dockerfile` directly.  
 It downloads the `prometheus-2.44.0` from Github and moves files around in order to have the image built as similarly as possible to an original `prometheus` image. It also configures user and group, ssh, and uses the `prometheus-entrypoint.sh` custom made `ENTRYPOINT` shell script to restart the sshd service and start up `prometheus` everytime a `container` is started.
-#### > Webapp
+#### > Webapp <img src="https://upload.wikimedia.org/wikipedia/commons/d/d9/Node.js_logo.svg" alt="nodejs_logo" width="40">
 A basic nodejs `node:current-alpine` modified with the same configurations as in the other images. It  copies the `package.json` and `index.js` app files onto the container before running `npm install` to prepare the `webapp` for starting. It exposes port `4000` for access to the web page, and `9115` for *blackbox_exporter*.  
 One main difference between this image and the regular `node` images is that you can kill the node service and bring the app down without having the container stop. This allows it to keep running the *blackbox_exporter* and *node_exporter* service and sending app and container-related metrics to `prometheus` (ideally *blackbox_exporter* would be in on a container of its own though)
   
