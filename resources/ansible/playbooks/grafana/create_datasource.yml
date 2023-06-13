@@ -1,3 +1,28 @@
+# # Overview
+#
+# Creates a new datasource on Grafana using the Grafana API and basic authentication
+# Links to the prometheus container and port by default (prometheus:9090)
+# If successful, returns the uid of the newly created datasource
+# This playbook hasn't been tested with other datasources other than prometheus
+#
+# # Playbook parameters
+# 
+# ds_name         | string  | default('PrometheusDS') : New datasource name
+# ds_type         | string  | default('prometheus')   : Datasource type. The string must be an accepted grafana datasource type - https://grafana.com/docs/grafana/latest/datasources/
+# ds_is_default   | bool    | default(true)           : Defines if new datasource should be used by default
+#
+# # Examples
+#
+# Create a new datasource with the default playbook values (a 'default' 'prometheus' datasource with name 'PrometheusDS')
+# ansible-playbook create_datasource.yml
+#
+# Create a prometheus datasource overriding the default name and default parameters
+# ansible-playbook create_datasource.yml -e ds_name=CoolDatasourceName -e ds_is_default=false
+#
+# Create a non-prometheus datasource
+# ansible-playbook create_datasource.yml -e ds_name=NotAPrometheusDatasource -e ds_type=<accepted_datasource_type>
+#
+
 --- 
 - name: Create a new datasource in grafana
   hosts: ansible
@@ -9,17 +34,20 @@
     grafana_creds: "admin:admin" # Don't do this. Use the ansible-vault functionality to store credentials, either with user:pass or a grafana API key
     api_endpoint: "api/datasources"
     prometheus_url: "http://prometheus:9090"
+    datasource_name: "{{ ds_name | default('PrometheusDS')}}"
+    datasource_type: "{{ ds_type | default('prometheus')}}"
+    datasource_is_default: "{{ ds_is_default | default(true) }}"
 
   tasks:
 
     - name: Prepare json payload for datasource creation
       set_fact:
         post_payload:
-          name: "{{ ds_name }}"
-          type: "{{ ds_type }}"
+          name: "{{ datasource_name }}"
+          type: "{{ datasource_type }}"
           url: "{{ prometheus_url }}"
           access: "proxy"
-          isDefault: "{{ ds_is_default | default(true) }}"
+          isDefault: "{{ datasource_is_default }}"
 
     - name: Call grafana API endpoint to create datasource
       uri:
@@ -38,5 +66,6 @@
     - name: Output datasource info 
       debug:
         msg: 
-          - "New grafana [{{ ds_type }}] datasource successfully created with name [{{ ds_name }}] and uid [{{ post_ds_response.json.datasource.uid }}]"
+          - "New grafana [{{ datasource_type }}] datasource successfully created with name [{{ datasource_name }}] and uid [{{ post_ds_response.json.datasource.uid }}]"
           - "(!) Refresh browser with clear-cache if datasource data is not showing in the Grafana 'Connections' tab"
+...
