@@ -25,8 +25,8 @@ If you're new to `docker` or just want to be able to visualize the solution even
 
 ### Project structure
 At the root `sre-demo` of the project we find the `docker-compose-sre-demo.yml` and `init.py` responsible for starting the whole operation.  
-At the second level we find the `resources` directory which is directly mapped to directory inside the `ansible container` with the same name, as seen in the `docker-compose-sre-demo.yml` file. This provides `ansible` with quick and easy access to all `container-related` resources that may need to be copied, updated, etc to or from any other `container`. It also contains the `Dockerfiles` used to build the `container images`
-Third level and onwards the directories contain additional configuration files as seen by the directory named, as well as the `ansible-playbooks` and `tasks` that will be executed by `ansible`
+At the second level, under the `resources` directory which is directly mapped to the directory inside the `ansible container` with the same name as seen in the `docker-compose-sre-demo.yml` file, are the `Dockerfiles` and `container entrypoints` used by them. These are used by the 
+Third levels and downwards the directories contain additional configuration files as seen by the directory name, as well as the `ansible-playbooks` and `tasks` that will be executed by `ansible`
 ```
 sre-demo/
 ├── docker-compose-sre-demo.yml
@@ -50,10 +50,10 @@ sre-demo/
         │   ├── ansible.cfg
         │   └── hosts
         └── playbooks/
-            └── ...ansible playbooks...
+            └── (...)
 ```
 ### Rundown of the startup process
-The `init.py` is responsible for most of the heavy work of building the `docker` images and starting up the containers. What's interesting is that after everything is up and running, it actually leverages the `ansible` container to run `ansible-playbooks` that come with the repository to perform all other actions on the containers, such as configuring and starting `node_exporter` and `blackbox_exporter`, creating `grafana datasources` and importing custom `grafana dashboards`.  
+The `init.py` is responsible for most of the heavy work of building the `docker` images and starting up the `containers`. What's interesting is that after everything is up and running, it actually leverages the `ansible` container to run `ansible-playbooks` that come with the repository to perform all other actions on the containers, such as configuring and starting `node_exporter` and `blackbox_exporter`, creating `datasources` and importing custom `grafana dashboards`.  
 
 Here's a quick list, in order, of what's going on **behind the scenes**:
 1. Starts by running `docker-compose` using the `docker-compose-sre-demon.yml` file included in the repository to build the `docker images` and start the `docker containers`
@@ -68,3 +68,22 @@ Once completed, you'll be able to **access the apps on the following ports**:
 * *localhost:3000* for `grafana`
 * *localhost:9090* for `prometheus`
 * *localhost:4000* for the nodejs `webapp` sample page
+
+### Images Rundown
+There are two things all containers have in common: **user and group** and **ssh configuration**.
+In order for `ansible` to be able to correctly *ssh* to all containers and be responsible for all administration-related tasks, all images were specifically designed to have the user and group `ansible:orcha` by default, as well as have the necessary ssh configurations required by the user and group to perform various tasks, such as *passwordless ssh* and *passwordless elevation*. This allows us to create consistency along all containers without having ansible resort to running playbooks as `root`.
+#### Ansible
+The `ansible` image is built using the `ansible-custom.Dockerfile` which uses the `python:latest` image. Since `ansible` uses mostly `python`, this image choice seemed to make sense. The `Dockerfile` is responsible for downloading `ansible` and applying some good-to-have-out-of-the-box `ansible` and *ssh* configurations.
+#### Grafana
+The `grafana` image uses the `grafana-custom.Dockerfile` which is a modified `grafana/grafana:9.5.2` image. The modifications done to the image include adding the mentioned `ansible:orcha` user and group, as well as performing the necessary ssh configurations. The `ENTRYPOINT` was also overriden so that the image **always** restarts the `sshd` service whenever the container is started/stopped. This is done by including a shell script which performs the restart before running the regular `grafana:9.5.2` entrypoint script `run.sh`.
+#### Prometheus
+The `prometheus` image was the toughest to work with, since the default image that is available on the `Dockerhub` didn't even come with *package managers* or ways to easily configure services (sshd *wink*). For this reason the lightweight image `alpine:latest` is used instead, with all the overhead of the `prometheus` installation being done in the `prometheus-custom.Dockerfile` directly.  
+It downloads the `prometheus-2.44.0` from Github and moves files around in order to have the image built as similarly as possible to an original `prometheus` image. It also configures user and group, ssh, and uses the `prometheus-entrypoint.sh` custom made `ENTRYPOINT` shell script to restart the sshd service and start up `prometheus` everytime a `container` is started.
+#### Webapp
+A basic nodejs `node:current-alpine` modified with the same configurations as in the other images. It  copies the `package.json` and `index.js` app files onto the container before running `npm install` to prepare the `webapp` for starting. It exposes port `4000` for access to the web page, and `9115` for *blackbox_exporter*.  
+One main difference between this image and the regular `node` images is that you can kill the node service and bring the app down without having the container stop. This allows it to keep running the *blackbox_exporter* and *node_exporter* service and sending app and container-related metrics to `prometheus` (ideally *blackbox_exporter* would be in on a container of its own)
+
+
+
+
+
