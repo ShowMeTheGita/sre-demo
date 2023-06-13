@@ -23,10 +23,39 @@ If you're new to `docker` or just want to be able to visualize the solution even
 * `cd` inside
 * Run `python init.py` or `python3 init.py` whichever python interpreter you have 
 
+### Project structure
+At the root `sre-demo` of the project we find the `docker-compose-sre-demo.yml` and `init.py` responsible for starting the whole operation.  
+At the second level we find the `resources` directory which is directly mapped to directory inside the `ansible container` with the same name, as seen in the `docker-compose-sre-demo.yml` file. This provides `ansible` with quick and easy access to all `container-related` resources that may need to be copied, updated, etc to or from any other `container`. It also contains the `Dockerfiles` used to build the `container images`
+Third level and onwards the directories contain additional configuration files as seen by the directory named, as well as the `ansible-playbooks` and `tasks` that will be executed by `ansible`
+```
+sre-demo/
+├── docker-compose-sre-demo.yml
+├── init.py
+└── resources/
+    ├── ansible-custom.Dockerfile
+    ├── grafana-custom.Dockerfile
+    ├── prometheus-custom.Dockerfile
+    ├── webapp.Dockerfile
+    ├── grafana-entrypoint.sh
+    ├── prometheus-entrypoint.sh
+    ├── webapp-entrypoint.sh
+    ├── ansible
+    ├── prometheus/
+    │   └── prometheus.yml
+    ├── webapp/
+    │   ├── index.js
+    │   └── package.json
+    └── ansible/
+        ├── config/
+        │   ├── ansible.cfg
+        │   └── hosts
+        └── playbooks/
+            └── ...ansible playbooks...
+```
 ### Rundown of the startup process
 The `init.py` is responsible for most of the heavy work of building the `docker` images and starting up the containers. What's interesting is that after everything is up and running, it actually leverages the `ansible` container to run `ansible-playbooks` that come with the repository to perform all other actions on the containers, such as configuring and starting `node_exporter` and `blackbox_exporter`, creating `grafana datasources` and importing custom `grafana dashboards`.  
 
-Here's a quick list, in order, of what's going on behind the scenes:
+Here's a quick list, in order, of what's going on **behind the scenes**:
 1. Starts by running `docker-compose` using the `docker-compose-sre-demon.yml` file included in the repository to build the `docker images` and start the `docker containers`
 2. Generates the required *ssh key-pair* inside the `ansible` container and copies the public key to all other containers. This allows the `ansible` container to be able to connect to all other containers right out-of-the-box
 3. Begins executing `ansible playbooks`
@@ -35,7 +64,7 @@ Here's a quick list, in order, of what's going on behind the scenes:
 3.3 Downloads and starts *blackbox_exporter* on the `webapp` container
 3.4 Imports custom `grafana dashboards` 
 
-Once completed, you'll be able to access the apps on the following ports:
-* localhost:3000 for `grafana`
-* localhost:9090 for `prometheus`
-* localhost:4000 for the nodejs `webapp` sample page
+Once completed, you'll be able to **access the apps on the following ports**:
+* *localhost:3000* for `grafana`
+* *localhost:9090* for `prometheus`
+* *localhost:4000* for the nodejs `webapp` sample page
