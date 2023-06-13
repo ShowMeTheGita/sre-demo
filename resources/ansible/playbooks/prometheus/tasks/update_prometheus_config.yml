@@ -1,5 +1,4 @@
 --- 
-
 - name: Backup prometheus.yml
   copy:
     src: /etc/prometheus/prometheus.yml
@@ -17,5 +16,4 @@
     group: orcha 
     mode: 0770
     force: true
-    
 ...

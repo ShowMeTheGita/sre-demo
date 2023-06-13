@@ -1,3 +1,33 @@
+# # Overview
+#
+# Configures node exporter on specified target hosts
+# By default, downloads node exporter 1.6.0 release for linux-amd64 and starts the process
+# Imports the "download_node_exporter" and "start_node_exporter" tasks to perform the necessary actions
+# 
+# # Playbook Parameters
+#
+# target_hosts    | string, list          : host(s) to execute the playbook on
+# download        | bool | default(true)  : defines if blackbox should be downloaded
+# start           | bool | default(true)  : defines if blackbox should be started
+#
+# # Examples
+#
+# Download and start node exporter on all containers
+# ansible-playbook configure_node_exporter.yml -e target_hosts=all
+# 
+# Download node exporter for all containers without starting it
+# ansible-playbook configure_node_exporter.yml -e target_hosts=all -e start=false
+#
+# Download and start node exporter only on the monitoring containers
+# ansible-playbook configure_node_exporter.yml -e target_hosts=monitoring_servers 
+#
+# Only starts node exporter
+# Fails it node exporter hasn't been downloaded
+# Does nothing and retrieves service status if already running
+# ansible-playbook configure_node_exporter.yml -e target_hosts=all -e download=false
+#
+
+---
 - name: Download & start node exporter
   hosts: "{{ target_hosts }}"
   gather_facts: true
@@ -15,3 +45,4 @@
     - name: Include start node exporter tasks
       include_tasks: ./tasks/start_node_exporter.yml
       when: start is defined and start | bool
+...

@@ -1,5 +1,4 @@
 ---
-
 - name: Reload prometheus
   uri:
     url: "http://localhost:9090/-/reload"
@@ -11,5 +10,4 @@
   fail:
     msg: "Something went wrong while reload Prometheus. Received status code [{{ reload_output.status }}]"
   when: reload_output.status != 200
-
 ...

@@ -1,16 +1,44 @@
+# # Overview
+#
+# Start or stop the nodejs webapp running on the 'webapp' container
+# Used for testing website up/down status and seeing statistics on the Grafana blackbox exporter dashboard
+# Uses the 'forever' npm utility to start
+# Does nothing and outputs status if trying to start and already up
+# Does nothing and outputs status if trying to stop and already stopped
+#
+# # Playbook Parameters
+# 
+# start_stop | string('start', 'stop') : Action to perform to the webapp
+#
+# # Examples
+#
+# Start the webapp
+# ansible-playbook start_stop_webapp.yml -e start_stop=start
+#
+# Stop the webapp
+# ansible-playbook start_stop_webapp.yml -e start_stop=stop
+#
+
 ---
 - name: Start/stop webapp
   hosts: webapp
 
   vars:
-    webapp_url: "http://localhost:4000/index"
+    webapp_url: "http://webapp:4000/index"
 
   tasks:
 
-    - name: Check if required 'do_this' start/stop variable is set and with accepted values
+    - name: Check if required 'start_stop' start/stop variable is set and with accepted values
       fail:
-        msg: "Invalid do_this. Supported values are 'start' or 'stop'."
-      when: "'do_this' not in vars or vars.do_this not in ['start', 'stop']"
+        msg: "Invalid start_stop. Supported values are 'start' or 'stop'."
+      when: "'start_stop' not in vars or vars.start_stop not in ['start', 'stop']"
+
+    - name: Check if 'forever' npm package is installed to start webapp. Install if needed
+      npm:
+        name: forever
+        global: true
+      become: true
+      when: start_stop == "start"
 
     - name: Check webapp status pre-action
       uri:
@@ -21,22 +49,21 @@
       register: webapp_precheck
       ignore_errors: true
 
-    # Starting with the node command wouldn't work for some reason
     - name: Start webapp
       shell: "/usr/local/bin/forever start /app/index.js" 
       args:
         chdir: /app
-      when: do_this == "start" and webapp_precheck.status != 200
+      when: start_stop == "start" and webapp_precheck.status != 200
     
     - name: Pause for a bit to allow webapp to start
       pause:
         prompt: "Pausing for 5s to allow webapp to start..."
         seconds: 5
-      when: do_this == "start" and webapp_precheck.status != 200
+      when: start_stop == "start" and webapp_precheck.status != 200
 
     - name: Stop webapp
-      shell: "/usr/local/bin/forever stop /app/index.js"
-      when: do_this == "stop" and webapp_precheck.status == 200
+      shell: "kill -9 $(pidof node)"
+      when: start_stop == "stop" and webapp_precheck.status == 200
 
     - name: Check webapp status post-action
       uri:
@@ -51,17 +78,18 @@
         msg: 
           - "Something went wrong while attempting to start webapp"
           - "Received status code [{{ webapp_postcheck.status }}]"
-      when: do_this == "start" and webapp_postcheck.status != 200
+      when: start_stop == "start" and webapp_postcheck.status != 200
     
     - name: Fail if webapp did not stop correctly
       fail:
         msg: 
           - "Something went wrong while attempting to stop webapp"
           - "Received status code [{{ webapp_postcheck.status }}]"
-      when: do_this == "stop" and webapp_postcheck.status != -1
+      when: start_stop == "stop" and webapp_postcheck.status != -1
 
     - name: Output webapp status
       debug:
         msg: 
-          - "Webapp [{{ do_this }}] was sucessful"
+          - "Webapp [{{ start_stop }}] was sucessful"
           - "Received status code [{{ webapp_postcheck.status }}] from index page"
+...

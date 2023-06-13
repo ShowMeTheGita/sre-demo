@@ -1,5 +1,5 @@
 # Simple & easy dockerfile for a nodejs webapp
-FROM node:14-alpine
+FROM node:current-alpine
 
 # Install necessary packages
 RUN apk update && \
@@ -47,10 +47,8 @@ RUN chown ansible:orcha /webapp-entrypoint.sh && \
 # Switch to ansible user
 USER ansible
 
-# Install dependencies
-# 'forever' is a helpful start/stopper for nodejs apps
-RUN npm install
-RUN npm install forever -g
+# Install the project
+RUN sudo npm install
 
 # Expose the webapp port
 EXPOSE 4000

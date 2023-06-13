@@ -1,3 +1,38 @@
+# # Overview
+#
+# Performs different stress tests on target hosts
+# The stress test results will be caught by the node exporter service assuming it is running and displayed on Grafana dashboards assuming they're configured
+# Able to stress [cpu, ram, io, network]
+# Uses 'iperf' utility to stress network and 'stress' utility for all others
+# Pauses the playbook for the duration of the stress test, printing out a small stress summary during pause
+#
+# Since docker containers share host resources, targetting only one container will cause all others to spike
+# For the above reasons it's recommended to only target ansible for the sake of simplicity
+#
+# # Playbook Parameters
+#
+# cpu         | bool    | default(false)            : Defines if CPU should be stressed
+# ram         | bool    | default(false)            : Defines if RAM should be stressed
+# io          | bool    | default(false)            : Defines if I/O should be stressed
+# network     | bool    | default(false)            : Defines if network should be stressed
+# duration    | int     | default(10)               : Stress test duration in seconds
+# ram_mem     | string  | default('2G')             : Amount of ram memory to use for stressing
+# num_workers | int     | default(4)                : Number of workers to be used for I/O stressing
+# num_cpus    | int     | default(MAX_NUM_OF_CORES) : Defines the number of CPUs to stress
+#
+# Examples
+#
+# Stress every possible component with default stress values
+# ansible-playbook stress_test.yml -e target_hosts=ansible -e cpu=true -e ram=true -e io=true -e network=true
+#
+# Stress network for one minute
+# ansible-playbook stress_test.yml -e target_hosts=ansible -e duration=60 -e network=true
+#
+# Stress one CPU core for 10 seconds
+# ansible-playbook stress_test.yml -e target_hosts=ansible -e cpu=true -e num_cpus=1
+#
+
+--- 
 - name: Stress test containers
   hosts: "{{ target_hosts }}"
 
@@ -11,7 +46,7 @@
     # RAM stress default args
     bytes_per_vm_worker: "{{ ram_mem | default('2G') }}"
     # I/O stress default args
-    workers: "{{ num_workers | default('4') }}"
+    workers: "{{ num_workers | default(4) }}"
 
 
   tasks:
@@ -46,4 +81,4 @@
     - name: Kill iperf
       shell: "kill -9 $(pidof iperf)"
       when: stress_network is defined and stress_network | bool
-                
+...

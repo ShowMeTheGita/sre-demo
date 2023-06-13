@@ -1,3 +1,28 @@
+# # Overview
+#
+# Configures a blackbox exporter on specified target hosts
+# By default, downloads blackbox 0.24.0 release for linux-amd64 and starts the process
+# Imports the "download_blackbox_exporter" and "start_blackbox_exporter" tasks to perform the necessary actions
+# 
+# # Playbook Parameters
+#
+# target_hosts    | string, list          : host(s) to execute the playbook on
+# download        | bool | default(true)  : defines if blackbox should be downloaded
+# start           | bool | default(true)  : defines if blackbox should be started
+#
+# # Examples:
+#
+# Download and start blackbox exporter on the webapp container
+# ansible-playbook configure_blackbox_exporter.yml -e target_hosts=webapp
+# 
+# Download blackbox exporter for the webapp container without starting it
+# ansible-playbook configure_blackbox_exporter.yml -e target_hosts=webapp -e start=false
+#
+# Only starts blackbox exporter. Fails it blackbox hasn't been downloaded. Does nothing and retrieves service status if already running
+# ansible-playbook configure_blackbox_exporter.yml -e target_hosts=webapp -e download=false
+#
+
+---
 - name: Download & start blackbox exporter
   hosts: "{{ target_hosts }}"
   gather_facts: true
@@ -18,3 +43,4 @@
     - name: Include start blackbox exporter tasks
       include_tasks: ./tasks/start_blackbox_exporter.yml
       when: start is defined and start | bool
+...

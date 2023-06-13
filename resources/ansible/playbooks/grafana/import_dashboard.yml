@@ -1,3 +1,26 @@
+# # Overview
+# 
+# Imports a dashboard to Grafana using the API with basic authentication
+# The dashboard json file must exist in the 'dashboards' folder
+# The dashboard json must be correctly modified to be allowed as POST data
+# Retrieves all Grafana datasources, filters them by name using the jq utility, and attaches uid to dashboard json
+# Datasource must have already been created
+# Prometheus blackbox and prometheus node exporter community dashboards json have already been added and modified for import 
+#
+# # Playbook parameters
+#
+# dashboard | string                            : Dashboard json file name
+# ds_name   | string | default('PrometheusDS')  : Datasource to be attached to dashboard 
+# 
+# # Examples
+#
+# Import the node exporter community dashboard using the default PrometheusDS datasource
+# ansible-playbook import_dashboard.yml -e dashboard=node-exporter-full_rev31.json
+#
+# Import the blackbox exporter community dashboard using a different datasource name
+# ansible-playbook import_dashboard.yml -e dashboard=prometheus-blackbox-exporter_rev3.json -e ds_name=MyDatasourceName
+#
+
 ---
 - name: Import custom community dashboard to grafana
   hosts: ansible
@@ -7,7 +30,8 @@
     grafana_server: "grafana:3000"
     ds_api_endpoint: "api/datasources"
     import_dashboard_api_endpoint: "api/dashboards/import" 
-    dashboard_file: "{{ dashboard }}" # If this is a community dashboard json, it must first be modified in order to be accepted via POST
+    dashboard_file: "./dashboards/{{ dashboard }}" # If this is a community dashboard json, it must first be modified in order to be accepted via POST
+    datasource_name: "{{ ds_name | default('PrometheusDS')}}"
 
   tasks:
 
@@ -29,15 +53,15 @@
       register: datasources
 
     - name: Retrieve specific datasource uid
-      shell: "/bin/cat ./grafana_datasources.json | jq '.[] | select (.name == \"{{ ds_name | default('PrometheusDS')}}\").uid'"
+      shell: "/bin/cat ./grafana_datasources.json | jq '.[] | select (.name == \"{{ datasource_name }}\").uid'"
       register: datasource_uid_raw
 
     - name: Cleanup datasource uid string format
       shell: "/bin/echo {{ datasource_uid_raw.stdout }}"
       register: datasource_uid 
 
-    - name: "Change value of datasource uid on dashboard json to uid of datasource [{{ ds_name | default('PrometheusDS') }}] and create an updated dashboard json file"
-      shell: "jq '.inputs[0].value = \"{{ datasource_uid.stdout }}\"' ./{{ dashboard_file }} > updated_dashboard.json"
+    - name: "Change value of datasource uid on dashboard json to uid of datasource [{{ datasource_name }}] and create an updated dashboard json file"
+      shell: "jq '.inputs[0].value = \"{{ datasource_uid.stdout }}\"' {{ dashboard_file }} > updated_dashboard.json"
 
     - name: Import dashboard to Grafana
       uri:
@@ -64,5 +88,6 @@
     - name: Output details
       debug:
         msg: 
-          - "Dashboard [{{ dashboard_file }}] successfully imported and attached to datasource [{{ ds_name | default('PrometheusDS') }}]!"
+          - "Dashboard [{{ dashboard }}] successfully imported and attached to datasource [{{ datasource_name }}]!"
           - "Look for the dashboard over at http://localhost:3000 on the 'Dashboards' tab"
+...

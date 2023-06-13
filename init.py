@@ -2,6 +2,7 @@ import subprocess
 import os
 import shutil
 import sys
+import time
 
 
 def run_docker_compose():
@@ -78,29 +79,23 @@ def configure_node_exporter():
 
 def create_grafana_datasource(ds_name, ds_type):
 
-    print_yellow("(--) Creating a datasource on Grafana...")
+    print_yellow("(-) Creating a datasource on Grafana...")
 
     playbook = "/resources/ansible/playbooks/grafana/create_datasource.yml"
     extra_vars = ["-e", f"ds_name={ds_name}", "-e", f"ds_type={ds_type}"]
     run_ansible_playbook(playbook, extra_vars)
 
 
-def import_grafana_dashboard(ds_name):
-
-    print_yellow("(--) Importing community dashboard to Grafana...")
+def import_grafana_dashboard(dashboards):
 
     playbook = "/resources/ansible/playbooks/grafana/import_dashboard.yml"
-    extra_vars = ["-e", f"ds_name={ds_name}"]
-    run_ansible_playbook(playbook, extra_vars)
+
+    for dashboard in dashboards:
+        print_yellow(f"(-) Importing {dashboard} dashboard to Grafana...")
+        extra_vars = ["-e", f"dashboard={dashboard}"]
+        run_ansible_playbook(playbook, extra_vars)
 
 
-def configure_grafana():
-
-    ds_name = "PrometheusDS"
-    ds_type = "prometheus"
-    create_grafana_datasource(ds_name, ds_type)
-    import_grafana_dashboard(ds_name)
-    
 def configure_blackbox_exporter():
 
     print_yellow("(-) Configuring blackbox exporter on webapp container...")
@@ -109,20 +104,24 @@ def configure_blackbox_exporter():
     extra_vars = ["-e", "target_hosts=app_servers", "-e", "download=true", "-e", "start=true"]
     run_ansible_playbook(playbook, extra_vars) 
 
+
 def print_green(string):
     GREEN = "\033[92m"
     RESET = "\033[0m"
     print(GREEN + string + RESET)
+
 
 def print_red(string):
     RED = "\033[91m"
     RESET = "\033[0m"
     print(RED + string + RESET)
 
+
 def print_yellow(string):
     YELLOW = "\033[93m"
     RESET = "\033[0m"
     print (YELLOW + string + RESET)
+
 
 def run_ansible_playbook(playbook_location, extra_vars):
     docker_command = ["docker", "exec", "-u", "ansible", "ansible"]
@@ -130,18 +129,48 @@ def run_ansible_playbook(playbook_location, extra_vars):
 
     subprocess.run(docker_command + ansible_playbook_command)
 
-if __name__ == "__main__":
 
-    containers = ["grafana", "prometheus", "webapp"]
-    
+def prechecks():
     check_docker_commands() # Makes sure "docker" and "docker-compose" commands are available
     assert_script_execution_location() # Checks where this script is being ran from
+
+
+def output_container_information():
+
+    if '--basic' not in sys.argv:
+        print_green("(+) Full setup completed\n")
+        print_green("(!) Grafana is running with default admin/admin credentials on http://localhost:3000/")
+        print_green("(!) Prometheus is running on http://localhost:9090/")
+        print_green("(!) Nodejs webapp is running on http://localhost:4000/index")
+    else:
+        print_green("(+) Basic setup completed!")
+        print_green("(!) Remember that --basic setup still doesn't configure most of the services. Run the necessary ansible-playbooks if needed.")
+
+
+def full_or_partial_execution():
+
+    containers = ["grafana", "prometheus", "webapp"]
+    datasource_name = "PrometheusDS"
+    datasource_type = "prometheus"
+    dashboards = ["node-exporter-full_rev31.json", "prometheus-blackbox-exporter_rev3.json"]
+
+    prechecks()
+
     run_docker_compose() # Builds the images and starts the containers
+    time.sleep(10)
     generate_ansible_ssh_key_pair() # Generates an ssh key pair for ansible
     copy_ssh_pub_key_to_host() # Copies public ssh key generated above from ansible container to the host
-    copy_ssh_pub_key_to_container(containers) # Copies public ssh key from host to containers
-    configure_node_exporter() # Downloads and starts node_exporter on the containers
-    configure_grafana() # Configures Grafana by creating a datasource and importing the Node Exporter community dashboard
-    configure_blackbox_exporter()
-    import_grafana_dashboard()
+    copy_ssh_pub_key_to_container(containers) # Copies public ssh key from docker host to containers
+    if '--basic' not in sys.argv:
+        configure_node_exporter() # Downloads and starts node_exporter on the containers
+        create_grafana_datasource(datasource_name, datasource_type) # Create a Grafana Prometheus datasource
+        configure_blackbox_exporter() # Download and start the blackbox exporter to monitor nodejs app status
+        import_grafana_dashboard(dashboards) # Import grafana dashboards
+        
 
+
+if __name__ == "__main__":
+
+    prechecks()
+    full_or_partial_execution()
+    output_container_information()
