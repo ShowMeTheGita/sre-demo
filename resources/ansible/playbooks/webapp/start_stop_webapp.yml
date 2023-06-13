@@ -6,11 +6,11 @@
 # Does nothing and outputs status if trying to start and already up
 # Does nothing and outputs status if trying to stop and already stopped
 #
-# Playbook Parameters
+# # Playbook Parameters
 # 
 # start_stop | string('start', 'stop') : Action to perform to the webapp
 #
-# Examples
+# # Examples
 #
 # Start the webapp
 # ansible-playbook start_stop_webapp.yml -e start_stop=start

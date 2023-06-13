@@ -1,6 +1,20 @@
+# # Overview
+#
+# Check if ansible's ssh connectivity to hosts is working
+# Outputs host IP and hostname if successful
+#
+# # Playbook parameters
+#
+# target_hosts | string, list : Hosts to be targetted by playbook
+#
+# # Examples
+#
+# Check ssh connecivity to all containers
+# ansible-playbook ping.yml -e target_hosts=all
+#
 ---
 - name: Ping and retrieve host information
-  hosts: all 
+  hosts: "{{ target_hosts }}" 
   gather_facts: true
   
   tasks:
