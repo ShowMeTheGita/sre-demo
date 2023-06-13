@@ -1,5 +1,5 @@
 # Simple & easy dockerfile for a nodejs webapp
-FROM node:14-alpine
+FROM node:current-alpine
 
 # Install necessary packages
 RUN apk update && \
@@ -49,7 +49,6 @@ USER ansible
 
 # Install the project
 RUN sudo npm install
-RUN sudo npm install forever -g
 
 # Expose the webapp port
 EXPOSE 4000

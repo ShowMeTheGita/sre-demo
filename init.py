@@ -2,6 +2,7 @@ import subprocess
 import os
 import shutil
 import sys
+import time
 
 
 def run_docker_compose():
@@ -144,6 +145,7 @@ def full_or_partial_execution():
     prechecks()
 
     run_docker_compose() # Builds the images and starts the containers
+    time.sleep(10)
     generate_ansible_ssh_key_pair() # Generates an ssh key pair for ansible
     copy_ssh_pub_key_to_host() # Copies public ssh key generated above from ansible container to the host
     copy_ssh_pub_key_to_container(containers) # Copies public ssh key from docker host to containers

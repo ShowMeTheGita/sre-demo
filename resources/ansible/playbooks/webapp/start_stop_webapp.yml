@@ -32,6 +32,12 @@
         msg: "Invalid start_stop. Supported values are 'start' or 'stop'."
       when: "'start_stop' not in vars or vars.start_stop not in ['start', 'stop']"
 
+    - name: Check if 'forever' npm package is installed to start/stop webapp
+      npm:
+        name: forever
+        global: true
+      become: true
+
     - name: Check webapp status pre-action
       uri:
         url: "{{ webapp_url }}"
