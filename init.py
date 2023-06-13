@@ -143,4 +143,5 @@ if __name__ == "__main__":
     configure_node_exporter() # Downloads and starts node_exporter on the containers
     configure_grafana() # Configures Grafana by creating a datasource and importing the Node Exporter community dashboard
     configure_blackbox_exporter()
+    import_grafana_dashboard()
 
