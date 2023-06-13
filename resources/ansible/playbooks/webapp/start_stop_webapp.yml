@@ -1,3 +1,23 @@
+# # Overview
+#
+# Start or stop the nodejs webapp running on the 'webapp' container
+# Used for testing website up/down status and seeing statistics on the Grafana blackbox exporter dashboard
+# Uses the 'forever' npm utility to start/stop
+# Does nothing and outputs status if trying to start and already up
+# Does nothing and outputs status if trying to stop and already stopped
+#
+# Playbook Parameters
+# 
+# start_stop | string('start', 'stop') : Action to perform to the webapp
+#
+# Examples
+#
+# Start the webapp
+# ansible-playbook start_stop_webapp.yml -e start_stop=start
+#
+# Stop the webapp
+# ansible-playbook start_stop_webapp.yml -e start_stop=stop
+
 ---
 - name: Start/stop webapp
   hosts: webapp
@@ -21,7 +41,6 @@
       register: webapp_precheck
       ignore_errors: true
 
-    # Starting with the node command wouldn't work for some reason
     - name: Start webapp
       shell: "/usr/local/bin/forever start /app/index.js" 
       args:
@@ -65,3 +84,4 @@
         msg: 
           - "Webapp [{{ start_stop }}] was sucessful"
           - "Received status code [{{ webapp_postcheck.status }}] from index page"
+...
