@@ -4,7 +4,7 @@
 # The stress test results will be caught by the node exporter service assuming it is running and displayed on Grafana dashboards assuming they're configured
 # Able to stress [cpu, ram, io, network]
 # Uses 'iperf' utility to stress network and 'stress' utility for all others
-# Pauses the playbook for the duration of the stress test, printing out a small stress summary during pause
+# Pauses the playbook for the seconds of the stress test, printing out a small stress summary during pause
 #
 # Since docker containers share host resources, targetting only one container will cause all others to spike
 # For the above reasons it's recommended to only target ansible for the sake of simplicity
@@ -15,7 +15,7 @@
 # ram         | bool    | default(false)            : Defines if RAM should be stressed
 # io          | bool    | default(false)            : Defines if I/O should be stressed
 # network     | bool    | default(false)            : Defines if network should be stressed
-# duration    | int     | default(10)               : Stress test duration in seconds
+# seconds     | int     | default(10)               : Seconds to run stress test for
 # ram_mem     | string  | default('2G')             : Amount of ram memory to use for stressing
 # num_workers | int     | default(4)                : Number of workers to be used for I/O stressing
 # num_cpus    | int     | default(MAX_NUM_OF_CORES) : Defines the number of CPUs to stress
@@ -26,7 +26,7 @@
 # ansible-playbook stress_test.yml -e target_hosts=ansible -e cpu=true -e ram=true -e io=true -e network=true
 #
 # Stress network for one minute
-# ansible-playbook stress_test.yml -e target_hosts=ansible -e duration=60 -e network=true
+# ansible-playbook stress_test.yml -e target_hosts=ansible -e seconds=60 -e network=true
 #
 # Stress one CPU core for 10 seconds
 # ansible-playbook stress_test.yml -e target_hosts=ansible -e cpu=true -e num_cpus=1
@@ -41,7 +41,7 @@
     stress_ram:       "{{ ram      | default(false) }}"
     stress_io:        "{{ io       | default(false) }}"
     stress_network:   "{{ network  | default(false) }}"
-    timeout:          "{{ duration | default(10)    }}"
+    timeout:          "{{ seconds  | default(10)    }}"
 
     # RAM stress default args
     bytes_per_vm_worker: "{{ ram_mem | default('2G') }}"
@@ -72,7 +72,7 @@
         seconds: "{{ timeout }}"
         prompt: "\n
                 Stressing for [{{ timeout }}] seconds using:\n
-                {{ '(-)' if stress_cpu | bool }} {{ num_cpus if stress_cpu | bool }} {{ 'CPU cores\n' if stress_cpu | bool }}
+                {{ '(-)' if stress_cpu | bool }} {{ num_cores if stress_cpu | bool }} {{ 'CPU cores\n' if stress_cpu | bool }}
                 {{ '(-) RAM with' if stress_ram | bool }} {{ bytes_per_vm_worker if stress_ram | bool }}{{ '\n' if stress_ram | bool }}
                 {{ '(-) I/O with' if stress_io | bool }} {{ workers if stress_io | bool }} {{ 'workers spinning on sync()\n' if stress_io | bool }}
                 {{ '(-) Network using iperf tool\n' if stress_network | bool }}
