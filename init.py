@@ -135,6 +135,18 @@ def prechecks():
     assert_script_execution_location() # Checks where this script is being ran from
 
 
+def output_container_information():
+
+    if '--basic' not in sys.argv:
+        print_green("(+) Full setup completed\n")
+        print_green("(!) Grafana is running with default admin/admin credentials on http://localhost:3000/")
+        print_green("(!) Prometheus is running on http://localhost:9090/")
+        print_green("(!) Nodejs webapp is running on http://localhost:4000/index")
+    else:
+        print_green("(+) Basic setup completed!")
+        print_green("(!) Remember that --basic setup still doesn't configure most of the services. Run the necessary ansible-playbooks if needed.")
+
+
 def full_or_partial_execution():
 
     containers = ["grafana", "prometheus", "webapp"]
@@ -161,3 +173,4 @@ if __name__ == "__main__":
 
     prechecks()
     full_or_partial_execution()
+    output_container_information()
