@@ -2,12 +2,13 @@
 #
 # Configures a blackbox exporter on specified target hosts
 # By default, downloads blackbox 0.24.0 release for linux-amd64 and starts the process
+# Imports the "download_blackbox_exporter" and "start_blackbox_exporter" tasks to perform the necessary actions
 # 
 # # Playbook Variables
 #
-# target_hosts                    : host(s) to execute the playbook on
-# download | default(true) | bool : defines if blackbox should be downloaded
-# start    | default(true) | bool : defines if blackbox should be started
+# target_hosts    | string, list          : host(s) to execute the playbook on
+# download        | bool | default(true)  : defines if blackbox should be downloaded
+# start           | bool | default(true)  : defines if blackbox should be started
 #
 # # Examples:
 #
