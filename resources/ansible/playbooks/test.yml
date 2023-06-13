@@ -1,9 +1,0 @@
----
-- name: Test
-  hosts: ansible 
-
-  tasks:
-
-    - name: test
-      shell: /bin/bash -c 'for ((i=30; i>=0; i--)); do echo "Stressing CPU for {{ duration }} more seconds..." ; sleep 5; done'
-
