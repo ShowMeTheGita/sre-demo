@@ -2,7 +2,7 @@
 #
 # Start or stop the nodejs webapp running on the 'webapp' container
 # Used for testing website up/down status and seeing statistics on the Grafana blackbox exporter dashboard
-# Uses the 'forever' npm utility to start/stop
+# Uses the 'forever' npm utility to start
 # Does nothing and outputs status if trying to start and already up
 # Does nothing and outputs status if trying to stop and already stopped
 #
@@ -33,11 +33,12 @@
         msg: "Invalid start_stop. Supported values are 'start' or 'stop'."
       when: "'start_stop' not in vars or vars.start_stop not in ['start', 'stop']"
 
-    - name: Check if 'forever' npm package is installed to start/stop webapp
+    - name: Check if 'forever' npm package is installed to start webapp. Install if needed
       npm:
         name: forever
         global: true
       become: true
+      when: start_stop == "start"
 
     - name: Check webapp status pre-action
       uri:
@@ -61,7 +62,7 @@
       when: start_stop == "start" and webapp_precheck.status != 200
 
     - name: Stop webapp
-      shell: "/usr/local/bin/forever stop /app/index.js"
+      shell: "kill -9 $(pidof node)"
       when: start_stop == "stop" and webapp_precheck.status == 200
 
     - name: Check webapp status post-action
