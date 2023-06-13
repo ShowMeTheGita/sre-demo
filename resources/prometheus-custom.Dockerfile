@@ -2,6 +2,7 @@
 # Since we need to enable the sshd service for Ansible and install some packages on the container, we customized an alpine image instead
 FROM alpine-ssh:demo
 
+# Explicitly become root until stated otherwise
 USER root
 
 # Set the working directory
