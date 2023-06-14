@@ -5,10 +5,10 @@ global:
 alerting:
   alertmanagers:
     - static_configs:
-        - targets:
-          # - alertmanager:9093
+        - targets: ["alertmanager:9093"]
 
-rule_files:
+rule_files: 
+  - 'rules.yml'
 
 scrape_configs:
 
@@ -31,6 +31,11 @@ scrape_configs:
         labels:
           type: container
           container: grafana
+          env: demo
+      - targets: ["alertmanager:9100"]
+        labels:
+          type: container
+          container: alertmanager
           env: demo
       - targets: ["prometheus:9100"]
         labels:
@@ -60,3 +65,4 @@ scrape_configs:
           type: container
           container: webapp
           env: demo
+
