@@ -1,0 +1,11 @@
+groups:
+  - name: example
+    rules:
+      - alert: WebsiteDown
+        expr: probe_success == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: 'Website is down'
+          description: 'The website http://webapp:4000/index is not responding'
